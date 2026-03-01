@@ -100,6 +100,79 @@ body {
   background: rgba(255, 79, 157, 0.28);
 }
 
+
+.chip--link {
+  text-decoration: none;
+}
+
+.status-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-bottom: 0.85rem;
+  color: var(--muted);
+}
+
+.status-dot {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 999px;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+}
+
+.status-dot--online {
+  background: #3be07e;
+}
+
+.status-dot--offline {
+  background: var(--danger);
+}
+
+.clips-grid {
+  margin-top: 0.8rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.8rem;
+}
+
+.clip-card {
+  text-decoration: none;
+  color: var(--text);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.05);
+  transition: transform 0.18s ease, border-color 0.18s ease;
+}
+
+.clip-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 79, 157, 0.55);
+}
+
+.clip-card__thumb {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.clip-card__body {
+  padding: 0.7rem 0.8rem 0.85rem;
+}
+
+.clip-card__title {
+  margin: 0;
+  font-weight: 600;
+}
+
+.clip-card__meta {
+  display: inline-block;
+  margin-top: 0.35rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
 .video-shell {
   border-radius: 14px;
   overflow: hidden;
