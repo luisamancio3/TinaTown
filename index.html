@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fruttinha Chaos Arcade</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="bg-glow" aria-hidden="true"></div>
+
+    <main class="app-shell">
+      <header class="hero">
+        <div class="hero__badge">LIVE TOOLKIT</div>
+        <h1>Fruttinha Chaos Arcade</h1>
+        <p>
+          A stream-ready chaos panel with instant challenges + a risky drinking minigame where one
+          bad roll ends the run.
+        </p>
+      </header>
+
+      <section class="panel panel--wheel" aria-labelledby="chaos-wheel-title">
+        <div class="panel__head">
+          <h2 id="chaos-wheel-title">Chaos Wheel</h2>
+          <span class="chip">One click challenge</span>
+        </div>
+
+        <div class="wheel-stage">
+          <div class="wheel-spinner" id="wheelSpinner" aria-hidden="true">🎡</div>
+          <div class="wheel-result" id="wheelResult" role="status" aria-live="polite">
+            Tap spin and let chat decide your fate.
+          </div>
+        </div>
+
+        <button id="spinWheelButton" class="btn btn--primary">Spin Chaos Wheel</button>
+      </section>
+
+      <section class="panel panel--game" aria-labelledby="minigame-title">
+        <div class="panel__head">
+          <h2 id="minigame-title">Mini Game: Fruttinha Last Cup Standing</h2>
+          <span class="chip">Risk / Reward</span>
+        </div>
+
+        <div class="game-grid">
+          <article class="avatar-card">
+            <div id="avatar" class="avatar sober" aria-hidden="true">🍓</div>
+            <p id="stateText" class="state-text">Fresh start. Confidence level: high.</p>
+            <div class="meter-wrap" aria-hidden="true">
+              <div id="dangerMeter" class="danger-meter"></div>
+            </div>
+            <small>Danger meter</small>
+          </article>
+
+          <article class="stats-card">
+            <div class="stat">
+              <span>Score</span>
+              <strong id="score">0</strong>
+            </div>
+            <div class="stat">
+              <span>Alcohol Level</span>
+              <strong id="alcoholLevel">0</strong>
+            </div>
+            <div class="stat">
+              <span>Pass Out Chance</span>
+              <strong id="passOutChance">5%</strong>
+            </div>
+            <div class="stat stat--record">
+              <span>High Score</span>
+              <strong><span id="bestScore">0</span> · <span id="bestPlayer">Nobody</span></strong>
+            </div>
+          </article>
+        </div>
+
+        <div class="controls">
+          <input id="playerName" type="text" maxlength="20" placeholder="Player name" />
+          <button id="drinkButton" class="btn btn--danger">Drink</button>
+          <button id="resetButton" class="btn">Reset Run</button>
+        </div>
+
+        <div id="gameMessage" class="game-message" role="status" aria-live="polite">
+          Press Drink and push your luck.
+        </div>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
