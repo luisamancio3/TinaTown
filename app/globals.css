@@ -455,3 +455,49 @@ input {
     grid-template-columns: repeat(2, minmax(120px, 1fr));
   }
 }
+
+.mini-games-grid {
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.mini-game-card {
+  text-decoration: none;
+  color: var(--text);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.85rem;
+  display: grid;
+  gap: 0.75rem;
+  transition: transform 0.18s ease, border-color 0.18s ease;
+}
+
+.mini-game-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 79, 157, 0.55);
+}
+
+.mini-game-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.mini-game-card__head h3 {
+  margin: 0;
+  font-size: 1.02rem;
+}
+
+.mini-game-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.mini-game-card__cta {
+  font-weight: 700;
+  color: #ffd2e8;
+}
