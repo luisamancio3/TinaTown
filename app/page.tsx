@@ -10,7 +10,7 @@ export default function Home() {
         <h1>Fruttinha Chaos Arcade</h1>
         <p>
           Future-ready Next.js base with a livestream widget first, plus chaos interactions for
-          chat and stream moments.
+          chat and stream moments. You can now jump to the Live Bingo section from the navbar.
         </p>
       </header>
 
