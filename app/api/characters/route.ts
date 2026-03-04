@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
       { characters: [] },
       {
         headers: {
-          "Cache-Control": "public, s-maxage=30, stale-while-revalidate=60",
+          "Cache-Control": "no-store",
         },
       },
     );
@@ -74,7 +74,7 @@ export async function GET(req: NextRequest) {
     { characters },
     {
       headers: {
-        "Cache-Control": "public, s-maxage=30, stale-while-revalidate=60",
+        "Cache-Control": "no-store",
       },
     },
   );
