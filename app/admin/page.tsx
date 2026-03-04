@@ -6,7 +6,6 @@ import {
   deriveCharacterColors,
   HAIRSTYLE_LABELS,
   ACCESSORY_LABELS,
-  type CharacterStyle,
   type HairStyle,
   type Accessory,
 } from "@/lib/colors";
@@ -61,7 +60,7 @@ function CharCard({
         <PixelHuman
           frame={frame}
           colors={colors}
-          style={char.style as CharacterStyle}
+          style="feminino"
           hairStyle={char.hairStyle as HairStyle}
           accessory={char.accessory as Accessory}
         />
@@ -70,7 +69,6 @@ function CharCard({
       <div className="admin-card__info">
         <h3 className="admin-card__name">{char.name}</h3>
         <p className="admin-card__detail">
-          {char.style === "feminino" ? "Feminino" : "Masculino"} &middot;{" "}
           {HAIRSTYLE_LABELS[char.hairStyle as HairStyle] || char.hairStyle} &middot;{" "}
           {ACCESSORY_LABELS[char.accessory as Accessory] || char.accessory}
         </p>

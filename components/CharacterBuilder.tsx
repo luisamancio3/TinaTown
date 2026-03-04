@@ -13,7 +13,6 @@ import {
   HAIRSTYLE_LABELS,
   VALID_ACCESSORIES,
   ACCESSORY_LABELS,
-  type CharacterStyle,
   type HairStyle,
   type Accessory,
 } from "@/lib/colors";
@@ -97,7 +96,6 @@ type Status = "idle" | "saving" | "saved" | "error";
 export function CharacterBuilder() {
   const [clientId, setClientId] = useState("");
   const [name, setName] = useState("");
-  const [charStyle, setCharStyle] = useState<CharacterStyle>("feminino");
   const [hairStyle, setHairStyle] = useState<HairStyle>("longo");
   const [accessory, setAccessory] = useState<Accessory>("nenhum");
   const [skin, setSkin] = useState(SKIN_PRESETS[0]);
@@ -130,7 +128,6 @@ export function CharacterBuilder() {
         const mine = (data.characters || []).find((c: any) => c.id === id);
         if (mine) {
           setName(mine.name);
-          setCharStyle(mine.style || "feminino");
           setHairStyle(mine.hairStyle || "longo");
           setAccessory(mine.accessory || "nenhum");
           setSkin(mine.skin);
@@ -157,7 +154,7 @@ export function CharacterBuilder() {
         body: JSON.stringify({
           clientId,
           name: name.trim(),
-          style: charStyle,
+          style: "feminino",
           hairStyle,
           accessory,
           skin,
@@ -187,7 +184,6 @@ export function CharacterBuilder() {
       });
       if (res.ok) {
         setName("");
-        setCharStyle("feminino");
         setHairStyle("longo");
         setAccessory("nenhum");
         setSkin(SKIN_PRESETS[0]);
@@ -217,7 +213,7 @@ export function CharacterBuilder() {
           <PixelHuman
             frame={frame}
             colors={colors}
-            style={charStyle}
+            style="feminino"
             hairStyle={hairStyle}
             accessory={accessory}
           />
@@ -229,27 +225,6 @@ export function CharacterBuilder() {
 
       {/* ── form ── */}
       <div className="char-builder__form">
-        {/* style (gender) */}
-        <div className="char-builder__field">
-          <label className="char-builder__label">Estilo</label>
-          <div className="char-builder__style-selector">
-            <button
-              type="button"
-              className={`char-builder__style-btn${charStyle === "feminino" ? " char-builder__style-btn--active" : ""}`}
-              onClick={() => { setCharStyle("feminino"); markDirty(); }}
-            >
-              Feminino
-            </button>
-            <button
-              type="button"
-              className={`char-builder__style-btn${charStyle === "masculino" ? " char-builder__style-btn--active" : ""}`}
-              onClick={() => { setCharStyle("masculino"); markDirty(); }}
-            >
-              Masculino
-            </button>
-          </div>
-        </div>
-
         {/* name */}
         <div className="char-builder__field">
           <label className="char-builder__label" htmlFor="char-name">
