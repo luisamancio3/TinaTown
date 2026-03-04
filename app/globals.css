@@ -1201,6 +1201,34 @@ input {
   margin-top: 0.6rem;
 }
 
+.admin-tabs {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 0.8rem;
+}
+
+.admin-tab {
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.admin-tab:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.admin-tab--active {
+  background: rgba(255, 79, 157, 0.18);
+  border-color: rgba(255, 79, 157, 0.5);
+  color: var(--text);
+}
+
 .admin-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));

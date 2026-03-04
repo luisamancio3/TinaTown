@@ -23,35 +23,40 @@ type CharacterData = {
   createdAt: number;
 };
 
-/* ── GET /api/admin/characters — list pending ────────────── */
+/* ── GET /api/admin/characters — list pending + approved ──── */
 export async function GET(req: NextRequest) {
   if (!isAuthorized(req)) {
     return NextResponse.json({ error: "nao autorizado" }, { status: 401 });
   }
 
-  const data = await redisPipeline([["HGETALL", "pending_characters"]]);
+  const data = await redisPipeline([
+    ["HGETALL", "pending_characters"],
+    ["HGETALL", "characters"],
+  ]);
 
   if (!data) {
-    return NextResponse.json({ pending: [] });
+    return NextResponse.json({ pending: [], approved: [] });
   }
 
-  const raw = (data[0]?.result as string[]) || [];
-  const pending: (CharacterData & { id: string })[] = [];
-
-  for (let i = 0; i < raw.length; i += 2) {
-    try {
-      const parsed = JSON.parse(raw[i + 1]) as CharacterData;
-      pending.push({ id: raw[i], ...parsed });
-    } catch {
-      /* skip malformed */
+  function parseHash(raw: string[]): (CharacterData & { id: string })[] {
+    const list: (CharacterData & { id: string })[] = [];
+    for (let i = 0; i < raw.length; i += 2) {
+      try {
+        const parsed = JSON.parse(raw[i + 1]) as CharacterData;
+        list.push({ id: raw[i], ...parsed });
+      } catch {
+        /* skip malformed */
+      }
     }
+    list.sort((a, b) => b.createdAt - a.createdAt);
+    return list;
   }
 
-  /* sort newest first */
-  pending.sort((a, b) => b.createdAt - a.createdAt);
+  const pending = parseHash((data[0]?.result as string[]) || []);
+  const approved = parseHash((data[1]?.result as string[]) || []);
 
   return NextResponse.json(
-    { pending },
+    { pending, approved },
     { headers: { "Cache-Control": "no-store" } },
   );
 }
@@ -69,8 +74,22 @@ export async function POST(req: NextRequest) {
     if (!clientId || typeof clientId !== "string") {
       return NextResponse.json({ error: "id invalido" }, { status: 400 });
     }
-    if (action !== "approve" && action !== "reject") {
+    if (action !== "approve" && action !== "reject" && action !== "remove") {
       return NextResponse.json({ error: "acao invalida" }, { status: 400 });
+    }
+
+    /* remove: delete an approved character */
+    if (action === "remove") {
+      const result = await redisPipeline([
+        ["HDEL", "characters", clientId],
+      ]);
+      if (!result) {
+        return NextResponse.json(
+          { error: "servico indisponivel" },
+          { status: 503 },
+        );
+      }
+      return NextResponse.json({ ok: true, action: "removed" });
     }
 
     if (action === "reject") {
