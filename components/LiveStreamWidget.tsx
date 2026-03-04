@@ -57,12 +57,12 @@ export function LiveStreamWidget() {
     };
   }, []);
 
-  const statusText = useMemo(() => (liveStatus === "online" ? "Online" : "Offline"), [liveStatus]);
+  const statusText = useMemo(() => (liveStatus === "online" ? "Ao Vivo" : "Offline"), [liveStatus]);
 
   return (
     <section className="panel" aria-labelledby="live-widget-title">
       <div className="panel__head">
-        <h2 id="live-widget-title">Live Stream</h2>
+        <h2 id="live-widget-title">Transmissao ao Vivo</h2>
         <a className="chip chip--link" href={`https://www.twitch.tv/${CHANNEL}`} target="_blank" rel="noreferrer">
           twitch.tv/{CHANNEL}
         </a>
@@ -71,12 +71,12 @@ export function LiveStreamWidget() {
       <div className="status-row" aria-live="polite">
         <span className={`status-dot status-dot--${liveStatus}`} aria-hidden="true" />
         <span>
-          Stream status: <strong>{statusText}</strong>
+          Status da stream: <strong>{statusText}</strong>
         </span>
       </div>
 
       <div className="video-shell">
-        <iframe title="Fruttinha livestream" src={embedSrc} allow="autoplay; fullscreen" loading="lazy" />
+        <iframe title="Transmissao da Fruttinha" src={embedSrc} allow="autoplay; fullscreen" loading="lazy" />
       </div>
     </section>
   );
