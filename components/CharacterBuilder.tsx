@@ -123,7 +123,7 @@ export function CharacterBuilder() {
     const id = getClientId();
     setClientId(id);
 
-    fetch("/api/characters")
+    fetch(`/api/characters?clientId=${encodeURIComponent(id)}`)
       .then((r) => r.json())
       .then((data) => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -317,7 +317,7 @@ export function CharacterBuilder() {
 
         {status === "saved" && (
           <p className="char-builder__status">
-            ✓ Personagem salvo! Ele ja esta caminhando por ai.
+            ✓ Personagem enviado para aprovacao!
           </p>
         )}
         {status === "error" && (

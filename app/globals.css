@@ -1167,3 +1167,132 @@ input {
     width: 100%;
   }
 }
+
+/* ── Admin page ────────────────────────────────────── */
+.admin-login {
+  max-width: 380px;
+  margin: 2rem auto;
+  text-align: center;
+}
+
+.admin-login h1 {
+  margin: 0 0 0.3rem;
+}
+
+.admin-login__hint {
+  color: var(--muted);
+  font-size: 0.88rem;
+  margin: 0 0 1rem;
+}
+
+.admin-login__form {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.admin-login__form input {
+  flex: 1;
+}
+
+.admin-login__error {
+  color: var(--danger);
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-top: 0.6rem;
+}
+
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0.8rem;
+}
+
+.admin-card {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: center;
+}
+
+.admin-card__sprite {
+  width: 64px;
+  height: 64px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.admin-card__sprite svg {
+  width: 100%;
+  height: 100%;
+}
+
+.admin-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.admin-card__name {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.admin-card__detail {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.admin-card__date {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.7rem;
+  opacity: 0.7;
+}
+
+.admin-card__actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.3rem;
+}
+
+.btn--approve {
+  background: linear-gradient(130deg, #3be07e, #2db866);
+  color: #fff;
+  font-weight: 700;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.82rem;
+}
+
+.btn--approve:hover {
+  opacity: 0.9;
+}
+
+.btn--approve:disabled,
+.btn--danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn--danger {
+  background: linear-gradient(130deg, #ff6f8f, #ff4f6d);
+  color: #fff;
+  font-weight: 700;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.82rem;
+}
+
+.btn--danger:hover {
+  opacity: 0.9;
+}

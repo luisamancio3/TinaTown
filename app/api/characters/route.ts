@@ -11,8 +11,6 @@ import {
   VALID_ACCESSORIES,
 } from "@/lib/colors";
 
-const MAX_CHARACTERS = 50;
-
 type CharacterData = {
   name: string;
   style: string;
@@ -26,9 +24,17 @@ type CharacterData = {
   createdAt: number;
 };
 
-/* ── GET /api/characters ─────────────────────────────────── */
-export async function GET() {
-  const data = await redisPipeline([["HGETALL", "characters"]]);
+/* ── GET /api/characters?clientId=xxx ─────────────────────── */
+export async function GET(req: NextRequest) {
+  const clientId = req.nextUrl.searchParams.get("clientId");
+
+  /* fetch approved characters (and optionally pending for this user) */
+  const commands: string[][] = [["HGETALL", "characters"]];
+  if (clientId) {
+    commands.push(["HGET", "pending_characters", clientId]);
+  }
+
+  const data = await redisPipeline(commands);
 
   if (!data) {
     return NextResponse.json(
@@ -43,7 +49,7 @@ export async function GET() {
 
   /* HGETALL returns [field1, value1, field2, value2, ...] */
   const raw = (data[0]?.result as string[]) || [];
-  const characters: (CharacterData & { id: string })[] = [];
+  const characters: (CharacterData & { id: string; pending?: boolean })[] = [];
 
   for (let i = 0; i < raw.length; i += 2) {
     try {
@@ -51,6 +57,16 @@ export async function GET() {
       characters.push({ id: raw[i], ...parsed });
     } catch {
       /* skip malformed entries */
+    }
+  }
+
+  /* include this user's pending character so they can edit it */
+  if (clientId && data[1]?.result) {
+    try {
+      const parsed = JSON.parse(data[1].result as string) as CharacterData;
+      characters.push({ id: clientId, ...parsed, pending: true });
+    } catch {
+      /* skip */
     }
   }
 
@@ -133,11 +149,17 @@ export async function POST(req: NextRequest) {
     }
 
     /* check if updating existing character (preserve createdAt) */
-    const existing = await redisPipeline([["HGET", "characters", clientId]]);
+    const existing = await redisPipeline([
+      ["HGET", "characters", clientId],
+      ["HGET", "pending_characters", clientId],
+    ]);
     let createdAt = Date.now();
-    if (existing?.[0]?.result) {
+    const approvedData = existing?.[0]?.result as string | null;
+    const pendingData = existing?.[1]?.result as string | null;
+    const prevData = approvedData || pendingData;
+    if (prevData) {
       try {
-        const prev = JSON.parse(existing[0].result as string) as CharacterData;
+        const prev = JSON.parse(prevData) as CharacterData;
         createdAt = prev.createdAt || createdAt;
       } catch {
         /* use new timestamp */
@@ -157,9 +179,11 @@ export async function POST(req: NextRequest) {
       createdAt,
     });
 
+    /* If already approved, update in-place. Otherwise save to pending. */
+    const targetHash = approvedData ? "characters" : "pending_characters";
+
     const result = await redisPipeline([
-      ["HSET", "characters", clientId, charData],
-      ["HLEN", "characters"],
+      ["HSET", targetHash, clientId, charData],
     ]);
 
     if (!result) {
@@ -169,33 +193,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    /* enforce cap — remove oldest if over limit */
-    const count = result[1]?.result as number;
-    if (count > MAX_CHARACTERS) {
-      const all = await redisPipeline([["HGETALL", "characters"]]);
-      if (all?.[0]?.result) {
-        const entries = all[0].result as string[];
-        let oldestId = "";
-        let oldestTime = Infinity;
-        for (let i = 0; i < entries.length; i += 2) {
-          if (entries[i] === clientId) continue;
-          try {
-            const parsed = JSON.parse(entries[i + 1]) as CharacterData;
-            if (parsed.createdAt < oldestTime) {
-              oldestTime = parsed.createdAt;
-              oldestId = entries[i];
-            }
-          } catch {
-            /* skip */
-          }
-        }
-        if (oldestId) {
-          await redisPipeline([["HDEL", "characters", oldestId]]);
-        }
-      }
-    }
-
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({
+      ok: true,
+      pending: targetHash === "pending_characters",
+    });
   } catch {
     return NextResponse.json(
       { error: "erro interno" },
@@ -217,7 +218,10 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    const result = await redisPipeline([["HDEL", "characters", clientId]]);
+    const result = await redisPipeline([
+      ["HDEL", "characters", clientId],
+      ["HDEL", "pending_characters", clientId],
+    ]);
     if (!result) {
       return NextResponse.json(
         { error: "servico indisponivel" },
