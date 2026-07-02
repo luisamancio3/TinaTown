@@ -1,10 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Press_Start_2P } from "next/font/google";
 import { PixelHuman, PixelCat } from "@/components/WalkingCharacters";
+import { FliperamaInterior } from "@/components/FliperamaInterior";
+import { CineInterior, type AudienceMember } from "@/components/CineInterior";
+import { TownBairro } from "@/components/TownBairro";
 import { useLiveStatus } from "@/lib/useLiveStatus";
+import { pickPhrase } from "@/lib/phrases";
+import { useRecords, type CharacterRecord } from "@/lib/useRecords";
 import {
   deriveCharacterColors,
   type HumanColors,
@@ -66,12 +71,27 @@ type Walker = {
   mine?: boolean;
 };
 
-function TownWalker({ walker, isMe }: { walker: Walker; isMe: boolean }) {
+const BUBBLE_MS = 4500;
+
+function TownWalker({
+  walker,
+  isMe,
+  record,
+}: {
+  walker: Walker;
+  isMe: boolean;
+  record?: CharacterRecord;
+}) {
   const [frame, setFrame] = useState<0 | 1>(0);
+  const [bubble, setBubble] = useState<string | null>(null);
+  const bubbleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const t = setInterval(() => setFrame((f) => (f === 0 ? 1 : 0)), 200);
-    return () => clearInterval(t);
+    return () => {
+      clearInterval(t);
+      if (bubbleTimer.current) clearTimeout(bubbleTimer.current);
+    };
   }, []);
 
   const h = hashString(walker.id);
@@ -80,15 +100,35 @@ function TownWalker({ walker, isMe }: { walker: Walker; isMe: boolean }) {
   const goesLeft = h % 2 === 1;
   const bottom = 1 + ((h >> 3) % 3) * 1.8;
 
+  const kind =
+    walker.id === "resident-fruttinha" ? "tina" : walker.kind === "cat" ? "cat" : "citizen";
+
+  function talk() {
+    const text =
+      kind === "citizen" && record && Math.random() < 0.4
+        ? `recorde: ${record.score} no ${record.game}`
+        : pickPhrase(kind);
+    setBubble(text);
+    if (bubbleTimer.current) clearTimeout(bubbleTimer.current);
+    bubbleTimer.current = setTimeout(() => setBubble(null), BUBBLE_MS);
+  }
+
   return (
-    <div
-      className={`town-walker${goesLeft ? " town-walker--left" : ""}${isMe ? " town-walker--me" : ""}`}
+    <button
+      type="button"
+      className={`town-walker${goesLeft ? " town-walker--left" : ""}${isMe ? " town-walker--me" : ""}${bubble ? " town-walker--talking" : ""}`}
       style={{ animationDuration: `${dur}s`, animationDelay: `${delay}s`, bottom: `${bottom}%` }}
-      aria-hidden
+      onClick={talk}
+      aria-label={`Falar com ${walker.name}`}
     >
-      {isMe && <span className={`town-walker__me-tag ${pixelFont.className}`}>voce</span>}
+      {bubble && (
+        <span className={`speech-bubble ${pixelFont.className}`} role="status">
+          {bubble}
+        </span>
+      )}
+      {isMe && !bubble && <span className={`town-walker__me-tag ${pixelFont.className}`}>voce</span>}
       <span className={`town-walker__name ${pixelFont.className}`}>{walker.name}</span>
-      <div className="town-walker__sprite">
+      <span className="town-walker__sprite">
         {walker.kind === "human" ? (
           <PixelHuman
             frame={frame}
@@ -99,8 +139,8 @@ function TownWalker({ walker, isMe }: { walker: Walker; isMe: boolean }) {
         ) : (
           <PixelCat frame={frame} />
         )}
-      </div>
-    </div>
+      </span>
+    </button>
   );
 }
 
@@ -125,11 +165,29 @@ const RESIDENTS: Walker[] = [
   { id: "resident-safira", kind: "cat", name: "Safira" },
 ];
 
+type InteriorId = "fliperama" | "cine" | null;
+
 export function TownMap() {
   const router = useRouter();
   const liveStatus = useLiveStatus();
+  const records = useRecords();
   const [userChars, setUserChars] = useState<UserCharacter[]>([]);
   const [approvedCount, setApprovedCount] = useState<number | null>(null);
+  const [interior, setInterior] = useState<InteriorId>(null);
+
+  /* close interiors with ESC and lock page scroll while inside */
+  useEffect(() => {
+    if (!interior) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setInterior(null);
+    };
+    window.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [interior]);
 
   useEffect(() => {
     const id = localStorage.getItem("tinatown-char-id");
@@ -160,6 +218,13 @@ export function TownMap() {
     })),
   ];
   const population = 3 + (approvedCount ?? 0);
+
+  const audience: AudienceMember[] = [
+    { id: "aud-tina", hair: "#141418", skin: "#fef5f0" },
+    { id: "aud-yuri", hair: "#f5f5f5", skin: "#e8e8e8" },
+    { id: "aud-safira", hair: "#f5f5f5", skin: "#e8e8e8" },
+    ...userChars.map((ch) => ({ id: `aud-${ch.id}`, hair: ch.hair, skin: ch.skin })),
+  ];
 
   return (
     <section className={`town ${isNight ? "town--night" : "town--day"}`} aria-label="Mapa da TinaTown">
@@ -212,8 +277,8 @@ export function TownMap() {
 
             {/* ===== BUILDINGS ===== */}
 
-            {/* Fliperama → mini-games hub */}
-            <Building label="Fliperama — mini-jogos" onActivate={() => router.push("/mini-games")}>
+            {/* Fliperama → arcade interior */}
+            <Building label="Fliperama — entrar na sala de jogos" onActivate={() => setInterior("fliperama")}>
               <rect className="town__wall town__wall--fliperama" x="40" y="300" width="200" height="260" />
               <rect x="30" y="286" width="220" height="18" fill="#3d2b80" />
               <rect x="56" y="316" width="168" height="40" rx="4" fill="#14101f" stroke="#3d2b80" strokeWidth="2" />
@@ -332,8 +397,8 @@ export function TownMap() {
               </text>
             </Building>
 
-            {/* Cine Tina → clips */}
-            <Building label="Cine Tina — clips da stream" onActivate={() => scrollToId("clips-panel")}>
+            {/* Cine Tina → movie session interior */}
+            <Building label="Cine Tina — entrar na sessao de clips" onActivate={() => setInterior("cine")}>
               <rect className="town__wall town__wall--cine" x="770" y="330" width="180" height="230" />
               <rect x="756" y="346" width="208" height="44" rx="4" fill="#fff0f6" />
               <text
@@ -420,12 +485,16 @@ export function TownMap() {
           </svg>
 
           {/* walking citizens (HTML layer over the street) */}
-          <div className="town__street-chars" aria-hidden>
+          <div className="town__street-chars">
             {walkers.map((w) => (
-              <TownWalker key={w.id} walker={w} isMe={!!w.mine} />
+              <TownWalker
+                key={w.id}
+                walker={w}
+                isMe={!!w.mine}
+                record={records[w.name.toLowerCase()]}
+              />
             ))}
           </div>
-
         </div>
       </div>
 
@@ -434,6 +503,37 @@ export function TownMap() {
         <span className={`status-dot status-dot--${liveStatus}`} aria-hidden="true" />
         {isNight ? "AO VIVO" : "OFFLINE"}
       </div>
+
+      {/* bairro dos cidadaos: one house per approved character */}
+      <TownBairro residents={userChars} records={records} />
+
+      {/* building interiors */}
+      {interior && (
+        <div
+          className="interior-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label={interior === "fliperama" ? "Interior do Fliperama" : "Interior do Cine Tina"}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setInterior(null);
+          }}
+        >
+          <div className="interior-shell">
+            <button
+              type="button"
+              className={`interior-close ${pixelFont.className}`}
+              onClick={() => setInterior(null)}
+            >
+              ✕ SAIR
+            </button>
+            {interior === "fliperama" ? (
+              <FliperamaInterior />
+            ) : (
+              <CineInterior audience={audience} />
+            )}
+          </div>
+        </div>
+      )}
     </section>
   );
 }
