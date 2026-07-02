@@ -1,14 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-
-const CHANNEL = "fruttinhaa";
-
-type LiveStatus = "online" | "offline";
-
-function getStatusFromResponse(responseText: string): LiveStatus {
-  return responseText.toLowerCase().includes("offline") ? "offline" : "online";
-}
+import { CHANNEL, useLiveStatus } from "@/lib/useLiveStatus";
 
 function getTwitchEmbedSrc(parentDomain: string) {
   const normalizedParent = parentDomain || "localhost";
@@ -22,7 +15,7 @@ function getTwitchEmbedSrc(parentDomain: string) {
 }
 
 export function LiveStreamWidget() {
-  const [liveStatus, setLiveStatus] = useState<LiveStatus>("offline");
+  const liveStatus = useLiveStatus();
   const [embedSrc, setEmbedSrc] = useState(() => getTwitchEmbedSrc("localhost"));
 
   useEffect(() => {
@@ -30,37 +23,10 @@ export function LiveStreamWidget() {
     setEmbedSrc(getTwitchEmbedSrc(hostname));
   }, []);
 
-  useEffect(() => {
-    let isMounted = true;
-
-    async function refreshStatus() {
-      try {
-        const response = await fetch(`https://decapi.me/twitch/uptime/${CHANNEL}`, { cache: "no-store" });
-        const text = await response.text();
-
-        if (isMounted) {
-          setLiveStatus(getStatusFromResponse(text));
-        }
-      } catch {
-        if (isMounted) {
-          setLiveStatus("offline");
-        }
-      }
-    }
-
-    refreshStatus();
-    const interval = setInterval(refreshStatus, 60_000);
-
-    return () => {
-      isMounted = false;
-      clearInterval(interval);
-    };
-  }, []);
-
   const statusText = useMemo(() => (liveStatus === "online" ? "Ao Vivo" : "Offline"), [liveStatus]);
 
   return (
-    <section className="panel" aria-labelledby="live-widget-title">
+    <section className="panel" id="live-panel" aria-labelledby="live-widget-title">
       <div className="panel__head">
         <h2 id="live-widget-title">Transmissao ao Vivo</h2>
         <a className="chip chip--link" href={`https://www.twitch.tv/${CHANNEL}`} target="_blank" rel="noreferrer">

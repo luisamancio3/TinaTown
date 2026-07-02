@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { WalkingCharacters } from "@/components/WalkingCharacters";
+import { FooterParade } from "@/components/FooterParade";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Tina Town",
-  description: "Widget de livestream + roleta do caos + mini-jogos",
+  description: "A cidadezinha da Fruttinha: livestream, mini-jogos e cidadaos pixelados",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -18,7 +18,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Link href="/personagem">Personagem</Link>
         </nav>
         {children}
-        <WalkingCharacters />
+        <FooterParade />
       </body>
     </html>
   );

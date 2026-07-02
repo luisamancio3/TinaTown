@@ -1324,3 +1324,305 @@ input {
 .btn--danger:hover {
   opacity: 0.9;
 }
+
+/* ══════════════════════════════════════════════════════════
+   Town map (homepage scene)
+   ══════════════════════════════════════════════════════════ */
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.town {
+  position: relative;
+  border-radius: 20px;
+  border: 1px solid var(--panel-border);
+  overflow: hidden;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.35);
+}
+
+.town-scroll {
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.town-canvas {
+  position: relative;
+  min-width: 720px;
+}
+
+.town__scene {
+  display: block;
+  width: 100%;
+  height: auto;
+  shape-rendering: crispEdges;
+}
+
+.town__scene text {
+  shape-rendering: auto;
+}
+
+/* ── day / night palette (night = Tina ao vivo) ─────────── */
+.town__sky,
+.town__grass,
+.town__hill,
+.town__sidewalk,
+.town__street,
+.town__dash,
+.town__window,
+.town__lamp,
+.town__screen,
+.town__wall,
+.town__bush circle {
+  transition: fill 1.4s ease;
+}
+
+.town__sun,
+.town__moon,
+.town__star,
+.town__cloud,
+.town__screen-off,
+.town__screen-live {
+  transition: opacity 1.4s ease;
+}
+
+.town--day .town__sky { fill: #8ec4e8; }
+.town--night .town__sky { fill: #151130; }
+
+.town--day .town__hill { fill: #74ad6a; }
+.town--night .town__hill { fill: #26443c; }
+
+.town--day .town__grass { fill: #6da85e; }
+.town--night .town__grass { fill: #2c4a35; }
+
+.town--day .town__sidewalk { fill: #cfc8b8; }
+.town--night .town__sidewalk { fill: #565064; }
+
+.town--day .town__street { fill: #55555f; }
+.town--night .town__street { fill: #2e2b3a; }
+
+.town--day .town__dash { fill: #d8d8d0; }
+.town--night .town__dash { fill: #6f6a80; }
+
+.town--day .town__bush circle { fill: #3f7a4f; }
+.town--night .town__bush circle { fill: #1e3a2a; }
+
+.town--day .town__sun { opacity: 1; fill: #ffd95e; }
+.town--night .town__sun { opacity: 0; fill: #ffd95e; }
+
+.town__moon-hole { fill: #151130; }
+.town--day .town__moon { opacity: 0; }
+.town--night .town__moon { opacity: 1; }
+
+.town--day .town__star { opacity: 0; fill: #ffffff; }
+.town--night .town__star { opacity: 0.9; fill: #ffffff; }
+
+.town__cloud ellipse { fill: #ffffff; }
+.town--day .town__cloud { opacity: 0.92; }
+.town--night .town__cloud { opacity: 0.16; }
+
+/* walls dim slightly at night */
+.town--day .town__wall--fliperama { fill: #6b4fc8; }
+.town--night .town__wall--fliperama { fill: #4e3a9b; }
+.town--day .town__wall--bar { fill: #d9694a; }
+.town--night .town__wall--bar { fill: #a34e3a; }
+.town--day .town__wall--cine { fill: #c94f7c; }
+.town--night .town__wall--cine { fill: #943a5e; }
+.town--day .town__wall--salao { fill: #1d9e75; }
+.town--night .town__wall--salao { fill: #157a5c; }
+
+/* windows: glass by day, warm glow by night */
+.town--day .town__window { fill: #cfe6f4; }
+.town--night .town__window {
+  fill: #ffd95e;
+  filter: drop-shadow(0 0 7px rgba(255, 217, 94, 0.75));
+}
+
+/* lampposts light up at night */
+.town--day .town__lamp { fill: #aab0bb; }
+.town--night .town__lamp {
+  fill: #ffe9a3;
+  filter: drop-shadow(0 0 9px rgba(255, 233, 163, 0.85));
+}
+
+/* marquee bulbs blink at night */
+.town__bulb { fill: #d8d2c8; transition: fill 1.4s ease; }
+.town--night .town__bulb { fill: #ffd95e; }
+.town--night .town__bulb--a { animation: town-bulb 1.2s steps(1) infinite; }
+.town--night .town__bulb--b { animation: town-bulb 1.2s steps(1) infinite 0.6s; }
+
+@keyframes town-bulb {
+  0%, 100% { fill: #ffd95e; }
+  50% { fill: #8a7a3a; }
+}
+
+/* telao screen */
+.town--day .town__screen { fill: #211d2b; }
+.town--night .town__screen {
+  fill: #6132c4;
+  filter: drop-shadow(0 0 14px rgba(145, 70, 255, 0.6));
+}
+
+.town--day .town__screen-off { opacity: 1; }
+.town--night .town__screen-off { opacity: 0; }
+.town--day .town__screen-live { opacity: 0; }
+.town--night .town__screen-live { opacity: 1; }
+
+.town--night .town__live-chip { animation: town-live-pulse 1.6s ease-in-out infinite; }
+
+@keyframes town-live-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+/* equalizer bars on the live screen */
+.town__eq { fill: #42d9cf; transform-box: fill-box; transform-origin: bottom; }
+.town--night .town__eq--1 { animation: town-eq 0.9s ease-in-out infinite alternate; }
+.town--night .town__eq--2 { animation: town-eq 0.7s ease-in-out infinite alternate 0.2s; }
+.town--night .town__eq--3 { animation: town-eq 1.1s ease-in-out infinite alternate 0.4s; }
+
+@keyframes town-eq {
+  from { transform: scaleY(0.35); }
+  to { transform: scaleY(1); }
+}
+
+/* clickable buildings */
+.town__building {
+  cursor: pointer;
+  outline: none;
+  transition: filter 0.2s ease;
+}
+
+.town__building:hover,
+.town__building:focus-visible {
+  filter: brightness(1.15) drop-shadow(0 0 10px rgba(255, 79, 157, 0.55));
+}
+
+/* status chip overlay */
+.town__status {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 9px;
+  color: var(--text);
+  background: rgba(14, 11, 23, 0.65);
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  padding: 7px 12px;
+  pointer-events: none;
+  backdrop-filter: blur(4px);
+}
+
+/* ── walking citizens in the street ─────────────────────── */
+.town__street-chars {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 22%;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.town-walker {
+  position: absolute;
+  left: -6%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  animation-name: town-walk-r;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: left;
+}
+
+.town-walker--left {
+  animation-name: town-walk-l;
+}
+
+.town-walker--left .town-walker__sprite {
+  transform: scaleX(-1);
+}
+
+@keyframes town-walk-r {
+  from { left: -6%; }
+  to { left: 103%; }
+}
+
+@keyframes town-walk-l {
+  from { left: 103%; }
+  to { left: -6%; }
+}
+
+.town-walker__name {
+  font-size: 7px;
+  line-height: 1.2;
+  color: #f7f4ff;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.town-walker__sprite {
+  display: flex;
+  align-items: flex-end;
+}
+
+.town-walker__sprite svg {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.town-walker__sprite .walking-char__sprite--human {
+  width: 32px;
+  height: auto;
+}
+
+.town-walker__sprite .walking-char__sprite--cat {
+  width: 22px;
+  height: auto;
+}
+
+/* highlight for the visitor's own character */
+.town-walker--me .town-walker__name {
+  color: #ffd95e;
+}
+
+.town-walker__me-tag {
+  font-size: 7px;
+  color: #ffd95e;
+  animation: town-me-bob 1s ease-in-out infinite;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.town-walker__me-tag::after {
+  content: " ▼";
+}
+
+@keyframes town-me-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .town-walker,
+  .town__cloud,
+  .town__eq,
+  .town__bulb,
+  .town__star,
+  .town__live-chip,
+  .town-walker__me-tag {
+    animation: none !important;
+  }
+}
