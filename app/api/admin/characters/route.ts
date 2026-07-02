@@ -73,10 +73,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "acao invalida" }, { status: 400 });
     }
 
-    /* remove: delete an approved character */
+    /* remove: delete an approved character for good — public list,
+       archive, and (via refreshed snapshot) the GitHub backup */
     if (action === "remove") {
       const result = await redisPipeline([
         ["HDEL", "characters", clientId],
+        ["HDEL", "characters_archive", clientId],
+        ["HSET", "town_meta", "seeded", "1"],
       ]);
       if (!result) {
         return NextResponse.json(
@@ -84,6 +87,7 @@ export async function POST(req: NextRequest) {
           { status: 503 },
         );
       }
+      await backupToGitHub();
       return NextResponse.json({ ok: true, action: "removed" });
     }
 
@@ -117,6 +121,7 @@ export async function POST(req: NextRequest) {
     const result = await redisPipeline([
       ["HSET", "characters", clientId, charData],
       ["HSET", "characters_archive", clientId, charData],
+      ["HSET", "town_meta", "seeded", "1"],
       ["HDEL", "pending_characters", clientId],
       ["HLEN", "characters"],
     ]);
@@ -130,7 +135,7 @@ export async function POST(req: NextRequest) {
 
     /* enforce cap — remove oldest from the public list if over limit
        (it stays in characters_archive, so it is never lost) */
-    const count = result[3]?.result as number;
+    const count = result[4]?.result as number;
     if (count > MAX_CHARACTERS) {
       const all = await redisPipeline([["HGETALL", "characters"]]);
       if (all?.[0]?.result) {

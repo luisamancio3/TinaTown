@@ -31,7 +31,10 @@ export async function GET(req: NextRequest) {
   const clientId = req.nextUrl.searchParams.get("clientId");
 
   /* fetch approved characters (and optionally pending for this user) */
-  const commands: string[][] = [["HGETALL", "characters"]];
+  const commands: string[][] = [
+    ["HGETALL", "characters"],
+    ["HGET", "town_meta", "seeded"],
+  ];
   if (clientId) {
     commands.push(["HGET", "pending_characters", clientId]);
   }
@@ -40,21 +43,25 @@ export async function GET(req: NextRequest) {
 
   /* HGETALL returns [field1, value1, field2, value2, ...] */
   let raw = (data?.[0]?.result as string[]) || [];
+  const alreadySeeded = Boolean(data?.[1]?.result);
 
-  /* self-heal: an empty/new/wiped Redis repopulates itself from the
-     GitHub snapshot, so characters survive even losing the database */
-  if (raw.length === 0) {
+  /* self-heal: an empty NEW database (no seeded marker) repopulates
+     itself from the GitHub snapshot, so characters survive losing the
+     database. The marker distinguishes a wiped/new Redis from a town
+     that is intentionally empty (e.g. admin removed everyone). */
+  if (raw.length === 0 && !alreadySeeded) {
     const backup = await fetchBackupFile();
     const entries = backup ? Object.entries(backup.characters) : [];
     if (entries.length > 0) {
       raw = entries.flat();
       /* best-effort reseed so future reads come straight from Redis */
-      await redisPipeline(
-        entries.flatMap(([id, charData]) => [
+      await redisPipeline([
+        ...entries.flatMap(([id, charData]) => [
           ["HSET", "characters", id, charData],
           ["HSET", "characters_archive", id, charData],
         ]),
-      );
+        ["HSET", "town_meta", "seeded", "1"],
+      ]);
     }
   }
 
@@ -76,9 +83,9 @@ export async function GET(req: NextRequest) {
   }
 
   /* include this user's pending character so they can edit it */
-  if (clientId && data?.[1]?.result) {
+  if (clientId && data?.[2]?.result) {
     try {
-      const parsed = JSON.parse(data[1].result as string) as CharacterData;
+      const parsed = JSON.parse(data[2].result as string) as CharacterData;
       characters.push({ id: publicCharacterId(clientId), mine: true, ...parsed, pending: true });
     } catch {
       /* skip */
