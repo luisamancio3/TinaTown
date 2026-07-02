@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { redisPipeline } from "@/lib/redis";
+import { publicCharacterId } from "@/lib/publicId";
+import { fetchBackupFile } from "@/lib/backup";
 import {
   SKIN_PRESETS,
   HAIR_PRESETS,
@@ -36,35 +38,48 @@ export async function GET(req: NextRequest) {
 
   const data = await redisPipeline(commands);
 
-  if (!data) {
-    return NextResponse.json(
-      { characters: [] },
-      {
-        headers: {
-          "Cache-Control": "no-store",
-        },
-      },
-    );
+  /* HGETALL returns [field1, value1, field2, value2, ...] */
+  let raw = (data?.[0]?.result as string[]) || [];
+
+  /* self-heal: an empty/new/wiped Redis repopulates itself from the
+     GitHub snapshot, so characters survive even losing the database */
+  if (raw.length === 0) {
+    const backup = await fetchBackupFile();
+    const entries = backup ? Object.entries(backup.characters) : [];
+    if (entries.length > 0) {
+      raw = entries.flat();
+      /* best-effort reseed so future reads come straight from Redis */
+      await redisPipeline(
+        entries.flatMap(([id, charData]) => [
+          ["HSET", "characters", id, charData],
+          ["HSET", "characters_archive", id, charData],
+        ]),
+      );
+    }
   }
 
-  /* HGETALL returns [field1, value1, field2, value2, ...] */
-  const raw = (data[0]?.result as string[]) || [];
-  const characters: (CharacterData & { id: string; pending?: boolean })[] = [];
+  /* NOTE: raw clientIds are ownership secrets (edit/delete key), so the
+     public payload only ever carries the derived id + a "mine" flag */
+  const characters: (CharacterData & { id: string; mine?: boolean; pending?: boolean })[] = [];
 
   for (let i = 0; i < raw.length; i += 2) {
     try {
       const parsed = JSON.parse(raw[i + 1]) as CharacterData;
-      characters.push({ id: raw[i], ...parsed });
+      characters.push({
+        id: publicCharacterId(raw[i]),
+        ...(clientId && clientId === raw[i] ? { mine: true } : {}),
+        ...parsed,
+      });
     } catch {
       /* skip malformed entries */
     }
   }
 
   /* include this user's pending character so they can edit it */
-  if (clientId && data[1]?.result) {
+  if (clientId && data?.[1]?.result) {
     try {
       const parsed = JSON.parse(data[1].result as string) as CharacterData;
-      characters.push({ id: clientId, ...parsed, pending: true });
+      characters.push({ id: publicCharacterId(clientId), mine: true, ...parsed, pending: true });
     } catch {
       /* skip */
     }
@@ -182,9 +197,13 @@ export async function POST(req: NextRequest) {
     /* If already approved, update in-place. Otherwise save to pending. */
     const targetHash = approvedData ? "characters" : "pending_characters";
 
-    const result = await redisPipeline([
-      ["HSET", targetHash, clientId, charData],
-    ]);
+    const commands: string[][] = [["HSET", targetHash, clientId, charData]];
+    /* approved characters are mirrored into the never-deleted archive */
+    if (approvedData) {
+      commands.push(["HSET", "characters_archive", clientId, charData]);
+    }
+
+    const result = await redisPipeline(commands);
 
     if (!result) {
       return NextResponse.json(

@@ -125,7 +125,7 @@ export function CharacterBuilder() {
       .then((r) => r.json())
       .then((data) => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const mine = (data.characters || []).find((c: any) => c.id === id);
+        const mine = (data.characters || []).find((c: any) => c.mine);
         if (mine) {
           setName(mine.name);
           setHairStyle(mine.hairStyle || "longo");

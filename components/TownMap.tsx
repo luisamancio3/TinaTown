@@ -63,6 +63,7 @@ type Walker = {
   colors?: HumanColors;
   hairStyle?: HairStyle;
   accessory?: Accessory;
+  mine?: boolean;
 };
 
 function TownWalker({ walker, isMe }: { walker: Walker; isMe: boolean }) {
@@ -115,6 +116,7 @@ type UserCharacter = {
   hairStyle?: HairStyle;
   accessory?: Accessory;
   pending?: boolean;
+  mine?: boolean;
 };
 
 const RESIDENTS: Walker[] = [
@@ -128,12 +130,9 @@ export function TownMap() {
   const liveStatus = useLiveStatus();
   const [userChars, setUserChars] = useState<UserCharacter[]>([]);
   const [approvedCount, setApprovedCount] = useState<number | null>(null);
-  const [myId, setMyId] = useState<string | null>(null);
 
   useEffect(() => {
     const id = localStorage.getItem("tinatown-char-id");
-    setMyId(id);
-
     const qs = id ? `?clientId=${encodeURIComponent(id)}` : "";
     fetch(`/api/characters${qs}`)
       .then((r) => r.json())
@@ -157,6 +156,7 @@ export function TownMap() {
       colors: deriveCharacterColors(ch),
       hairStyle: ch.hairStyle,
       accessory: ch.accessory,
+      mine: ch.mine,
     })),
   ];
   const population = 3 + (approvedCount ?? 0);
@@ -422,7 +422,7 @@ export function TownMap() {
           {/* walking citizens (HTML layer over the street) */}
           <div className="town__street-chars" aria-hidden>
             {walkers.map((w) => (
-              <TownWalker key={w.id} walker={w} isMe={myId !== null && w.id === myId} />
+              <TownWalker key={w.id} walker={w} isMe={!!w.mine} />
             ))}
           </div>
 

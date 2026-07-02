@@ -8,7 +8,14 @@ export type RedisResult = { result: unknown };
 export async function redisPipeline(
   commands: string[][],
 ): Promise<RedisResult[] | null> {
-  if (!REDIS_URL || !REDIS_TOKEN) return null;
+  if (!REDIS_URL || !REDIS_TOKEN) {
+    /* local dev without Upstash: use the file-backed store */
+    if (process.env.NODE_ENV !== "production") {
+      const { devPipeline } = await import("./devStore");
+      return devPipeline(commands);
+    }
+    return null;
+  }
 
   try {
     const res = await fetch(`${REDIS_URL}/pipeline`, {
