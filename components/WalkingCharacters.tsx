@@ -34,7 +34,7 @@ const DEFAULT_HUMAN_COLORS: HumanColors = {
 };
 
 /** Simple pixel-art white cat (side view), 2 frames for walk bob */
-function PixelCat({ frame }: { frame: 0 | 1 }) {
+export function PixelCat({ frame }: { frame: 0 | 1 }) {
   const bob = frame === 1 ? 1 : 0;
   return (
     <svg
