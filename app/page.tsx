@@ -8,7 +8,9 @@ export default function Home() {
     <main className="app-shell">
       <TownMap />
       <LiveStreamWidget />
-      <LiveCounters />
+      <div id="counters-panel">
+        <LiveCounters />
+      </div>
       <div id="clips-panel">
         <ClipsSection />
       </div>

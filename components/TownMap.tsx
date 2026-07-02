@@ -313,8 +313,8 @@ export function TownMap() {
               </g>
             </Building>
 
-            {/* census plaque */}
-            <g className="town__plaque">
+            {/* census plaque / mural → live counters */}
+            <Building label="Mural da praca — contadores da live" onActivate={() => scrollToId("counters-panel")}>
               <rect x="566" y="472" width="68" height="52" rx="4" fill="#221a38" stroke="#3f3f4a" strokeWidth="2" />
               <text
                 className={pixelFont.className}
@@ -330,7 +330,7 @@ export function TownMap() {
               >
                 CIDADAOS
               </text>
-            </g>
+            </Building>
 
             {/* Cine Tina → clips */}
             <Building label="Cine Tina — clips da stream" onActivate={() => scrollToId("clips-panel")}>
