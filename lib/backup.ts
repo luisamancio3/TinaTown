@@ -147,7 +147,7 @@ export async function restoreFromGitHub(): Promise<{
   const payload = await fetchBackupFile();
   if (!payload) return { ok: false, reason: "backup nao encontrado no GitHub" };
 
-  const commands: string[][] = [];
+  const commands: string[][] = [["HSET", "town_meta", "seeded", "1"]];
   for (const [id, data] of Object.entries(payload.characters)) {
     commands.push(["HSET", "characters", id, data]);
     commands.push(["HSET", "characters_archive", id, data]);
@@ -155,8 +155,6 @@ export async function restoreFromGitHub(): Promise<{
   for (const [id, data] of Object.entries(payload.archive)) {
     commands.push(["HSET", "characters_archive", id, data]);
   }
-
-  if (commands.length === 0) return { ok: true, restored: 0 };
 
   const result = await redisPipeline(commands);
   if (!result) return { ok: false, reason: "redis indisponivel" };
@@ -173,16 +171,12 @@ export async function restoreArchive(): Promise<{
   if (!data) return { ok: false, reason: "redis indisponivel" };
 
   const archive = flatToRecord((data[0]?.result as string[]) || []);
-  const commands = Object.entries(archive).map(([id, charData]) => [
-    "HSET",
-    "characters",
-    id,
-    charData,
-  ]);
-
-  if (commands.length === 0) return { ok: true, restored: 0 };
+  const commands: string[][] = [["HSET", "town_meta", "seeded", "1"]];
+  for (const [id, charData] of Object.entries(archive)) {
+    commands.push(["HSET", "characters", id, charData]);
+  }
 
   const result = await redisPipeline(commands);
   if (!result) return { ok: false, reason: "redis indisponivel" };
-  return { ok: true, restored: commands.length };
+  return { ok: true, restored: commands.length - 1 };
 }

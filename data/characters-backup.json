@@ -1,9 +1,5 @@
 {
-  "savedAt": "2026-07-02T14:12:22.485Z",
-  "characters": {
-    "77e8e0b33e5b0db6": "{\"name\":\"lamancio\",\"style\":\"feminino\",\"hairStyle\":\"longo\",\"accessory\":\"nenhum\",\"skin\":\"#fef5f0\",\"hair\":\"#141418\",\"eye\":\"#2d6b3f\",\"shirt\":\"#f0f0f5\",\"pants\":\"#2d2d2d\",\"createdAt\":1783000473155}"
-  },
-  "archive": {
-    "77e8e0b33e5b0db6": "{\"name\":\"lamancio\",\"style\":\"feminino\",\"hairStyle\":\"longo\",\"accessory\":\"nenhum\",\"skin\":\"#fef5f0\",\"hair\":\"#141418\",\"eye\":\"#2d6b3f\",\"shirt\":\"#f0f0f5\",\"pants\":\"#2d2d2d\",\"createdAt\":1783000473155}"
-  }
+  "savedAt": "2026-07-02T23:26:00.437Z",
+  "characters": {},
+  "archive": {}
 }
