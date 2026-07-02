@@ -12,6 +12,7 @@
       (fine-grained PAT with contents read/write on the repo). */
 
 import { redisPipeline } from "./redis";
+import { publicCharacterId } from "./publicId";
 
 const BACKUP_PATH = "data/characters-backup.json";
 
@@ -35,9 +36,13 @@ export function githubBackupEnabled(): boolean {
   return backupConfig() !== null;
 }
 
+/* keys are hashed: the snapshot is committed to a public repo, and raw
+   clientIds are ownership secrets (they allow editing/deleting) */
 function flatToRecord(flat: string[]): Record<string, string> {
   const record: Record<string, string> = {};
-  for (let i = 0; i < flat.length; i += 2) record[flat[i]] = flat[i + 1];
+  for (let i = 0; i < flat.length; i += 2) {
+    record[publicCharacterId(flat[i])] = flat[i + 1];
+  }
   return record;
 }
 
@@ -99,7 +104,7 @@ export async function backupToGitHub(): Promise<{ ok: boolean; reason?: string }
   }
 }
 
-async function fetchBackupFile(): Promise<BackupPayload | null> {
+export async function fetchBackupFile(): Promise<BackupPayload | null> {
   const cfg = backupConfig();
   const repo = cfg?.repo || process.env.GITHUB_BACKUP_REPO || "luisamancio3/TinaTown";
   const branch = cfg?.branch || process.env.GITHUB_BACKUP_BRANCH || "main";
