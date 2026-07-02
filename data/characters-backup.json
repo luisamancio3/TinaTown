@@ -1,5 +1,9 @@
 {
-  "savedAt": "2026-07-02T23:26:00.437Z",
-  "characters": {},
-  "archive": {}
+  "savedAt": "2026-07-02T23:45:35.001Z",
+  "characters": {
+    "eed9c71943428c65": "{\"name\":\"Lamancio\",\"style\":\"feminino\",\"hairStyle\":\"curto\",\"accessory\":\"oculos\",\"skin\":\"#c68642\",\"hair\":\"#f0f0f5\",\"eye\":\"#1a1a1a\",\"shirt\":\"#c0392b\",\"pants\":\"#2980b9\",\"createdAt\":1783035625811}"
+  },
+  "archive": {
+    "eed9c71943428c65": "{\"name\":\"Lamancio\",\"style\":\"feminino\",\"hairStyle\":\"curto\",\"accessory\":\"oculos\",\"skin\":\"#c68642\",\"hair\":\"#f0f0f5\",\"eye\":\"#1a1a1a\",\"shirt\":\"#c0392b\",\"pants\":\"#2980b9\",\"createdAt\":1783035625811}"
+  }
 }
