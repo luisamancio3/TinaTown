@@ -104,6 +104,8 @@ export default function AdminPage() {
   const [tab, setTab] = useState<Tab>("pending");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [backupMsg, setBackupMsg] = useState("");
+  const [backupBusy, setBackupBusy] = useState(false);
 
   /* restore secret from sessionStorage */
   useEffect(() => {
@@ -184,6 +186,64 @@ export default function AdminPage() {
     setApproved([]);
   }
 
+  async function handleExport() {
+    setBackupBusy(true);
+    setBackupMsg("");
+    try {
+      const res = await fetch("/api/admin/backup", {
+        headers: { Authorization: `Bearer ${secret}` },
+      });
+      if (!res.ok) {
+        setBackupMsg("Erro ao exportar backup");
+        return;
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `tinatown-personagens-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      setBackupMsg("Backup exportado");
+    } catch {
+      setBackupMsg("Erro ao exportar backup");
+    } finally {
+      setBackupBusy(false);
+    }
+  }
+
+  async function handleBackupAction(
+    action: "backup-now" | "restore-github" | "restore-archive",
+  ) {
+    setBackupBusy(true);
+    setBackupMsg("");
+    try {
+      const res = await fetch("/api/admin/backup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${secret}`,
+        },
+        body: JSON.stringify({ action }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.ok === false) {
+        setBackupMsg(data.reason || data.error || "Erro na operacao");
+        return;
+      }
+      if (action === "backup-now") {
+        setBackupMsg("Backup salvo no GitHub");
+      } else {
+        setBackupMsg(`Restaurados: ${data.restored ?? 0} personagens`);
+        fetchAll(secret);
+      }
+    } catch {
+      setBackupMsg("Erro na operacao");
+    } finally {
+      setBackupBusy(false);
+    }
+  }
+
   /* ── not logged in ── */
   if (!secret) {
     return (
@@ -247,6 +307,36 @@ export default function AdminPage() {
           >
             Aprovados ({approved.length})
           </button>
+        </div>
+
+        {/* backup toolbar */}
+        <div className="admin-backup">
+          <span className="clips-filters__label">Backup</span>
+          <button className="chip chip--filter" disabled={backupBusy} onClick={handleExport}>
+            Exportar JSON
+          </button>
+          <button
+            className="chip chip--filter"
+            disabled={backupBusy}
+            onClick={() => handleBackupAction("backup-now")}
+          >
+            Salvar no GitHub
+          </button>
+          <button
+            className="chip chip--filter"
+            disabled={backupBusy}
+            onClick={() => handleBackupAction("restore-github")}
+          >
+            Restaurar do GitHub
+          </button>
+          <button
+            className="chip chip--filter"
+            disabled={backupBusy}
+            onClick={() => handleBackupAction("restore-archive")}
+          >
+            Republicar arquivados
+          </button>
+          {backupMsg && <span className="admin-backup__msg">{backupMsg}</span>}
         </div>
 
         {error && <p className="admin-login__error">{error}</p>}

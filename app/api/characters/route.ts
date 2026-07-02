@@ -182,9 +182,13 @@ export async function POST(req: NextRequest) {
     /* If already approved, update in-place. Otherwise save to pending. */
     const targetHash = approvedData ? "characters" : "pending_characters";
 
-    const result = await redisPipeline([
-      ["HSET", targetHash, clientId, charData],
-    ]);
+    const commands: string[][] = [["HSET", targetHash, clientId, charData]];
+    /* approved characters are mirrored into the never-deleted archive */
+    if (approvedData) {
+      commands.push(["HSET", "characters_archive", clientId, charData]);
+    }
+
+    const result = await redisPipeline(commands);
 
     if (!result) {
       return NextResponse.json(

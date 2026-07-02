@@ -1,14 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { redisPipeline } from "@/lib/redis";
+import { isAuthorized } from "@/lib/adminAuth";
+import { backupToGitHub } from "@/lib/backup";
 
 const MAX_CHARACTERS = 50;
-
-function isAuthorized(req: NextRequest): boolean {
-  const secret = process.env.ADMIN_SECRET;
-  if (!secret) return false;
-  const auth = req.headers.get("authorization");
-  return auth === `Bearer ${secret}`;
-}
 
 type CharacterData = {
   name: string;
@@ -121,6 +116,7 @@ export async function POST(req: NextRequest) {
 
     const result = await redisPipeline([
       ["HSET", "characters", clientId, charData],
+      ["HSET", "characters_archive", clientId, charData],
       ["HDEL", "pending_characters", clientId],
       ["HLEN", "characters"],
     ]);
@@ -132,8 +128,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    /* enforce cap — remove oldest if over limit */
-    const count = result[2]?.result as number;
+    /* enforce cap — remove oldest from the public list if over limit
+       (it stays in characters_archive, so it is never lost) */
+    const count = result[3]?.result as number;
     if (count > MAX_CHARACTERS) {
       const all = await redisPipeline([["HGETALL", "characters"]]);
       if (all?.[0]?.result) {
@@ -157,6 +154,9 @@ export async function POST(req: NextRequest) {
         }
       }
     }
+
+    /* keep the GitHub snapshot fresh (no-op if token not configured) */
+    await backupToGitHub();
 
     return NextResponse.json({ ok: true, action: "approved" });
   } catch {
