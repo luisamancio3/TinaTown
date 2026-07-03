@@ -8,7 +8,7 @@ import { FliperamaInterior } from "@/components/FliperamaInterior";
 import { CineInterior, type AudienceMember } from "@/components/CineInterior";
 import { TownBairro } from "@/components/TownBairro";
 import { useLiveStatus } from "@/lib/useLiveStatus";
-import { pickPhrase } from "@/lib/phrases";
+import { pickPhrase, buildDialogue, type WalkerKind } from "@/lib/phrases";
 import { useRecords, type CharacterRecord } from "@/lib/useRecords";
 import {
   deriveCharacterColors,
@@ -73,14 +73,27 @@ type Walker = {
 
 const BUBBLE_MS = 4500;
 
+function walkerKind(walker: Walker): WalkerKind {
+  if (walker.id === "resident-fruttinha") return "tina";
+  return walker.kind === "cat" ? "cat" : "citizen";
+}
+
 function TownWalker({
   walker,
   isMe,
   record,
+  autoBubble,
+  autoPaused,
+  face,
+  onEl,
 }: {
   walker: Walker;
   isMe: boolean;
   record?: CharacterRecord;
+  autoBubble?: string | null;
+  autoPaused?: boolean;
+  face?: "left" | "right" | null;
+  onEl?: (el: HTMLButtonElement | null) => void;
 }) {
   const [frame, setFrame] = useState<0 | 1>(0);
   const [bubble, setBubble] = useState<string | null>(null);
@@ -100,8 +113,7 @@ function TownWalker({
   const goesLeft = h % 2 === 1;
   const bottom = 1 + ((h >> 3) % 3) * 1.8;
 
-  const kind =
-    walker.id === "resident-fruttinha" ? "tina" : walker.kind === "cat" ? "cat" : "citizen";
+  const kind = walkerKind(walker);
 
   function talk() {
     const text =
@@ -113,20 +125,25 @@ function TownWalker({
     bubbleTimer.current = setTimeout(() => setBubble(null), BUBBLE_MS);
   }
 
+  /* street-life bubbles (from the director) take priority over clicks */
+  const bubbleText = autoBubble ?? bubble;
+  const isTalking = autoPaused || !!bubbleText;
+
   return (
     <button
       type="button"
-      className={`town-walker${goesLeft ? " town-walker--left" : ""}${isMe ? " town-walker--me" : ""}${bubble ? " town-walker--talking" : ""}`}
+      ref={onEl}
+      className={`town-walker${goesLeft ? " town-walker--left" : ""}${isMe ? " town-walker--me" : ""}${isTalking ? " town-walker--talking" : ""}${face ? ` town-walker--face-${face}` : ""}`}
       style={{ animationDuration: `${dur}s`, animationDelay: `${delay}s`, bottom: `${bottom}%` }}
       onClick={talk}
       aria-label={`Falar com ${walker.name}`}
     >
-      {bubble && (
+      {bubbleText && (
         <span className={`speech-bubble ${pixelFont.className}`} role="status">
-          {bubble}
+          {bubbleText}
         </span>
       )}
-      {isMe && !bubble && <span className={`town-walker__me-tag ${pixelFont.className}`}>voce</span>}
+      {isMe && !bubbleText && <span className={`town-walker__me-tag ${pixelFont.className}`}>voce</span>}
       <span className={`town-walker__name ${pixelFont.className}`}>{walker.name}</span>
       <span className="town-walker__sprite">
         {walker.kind === "human" ? (
@@ -167,6 +184,17 @@ const RESIDENTS: Walker[] = [
 
 type InteriorId = "fliperama" | "cine" | null;
 
+/* street-life director timings */
+const DIRECTOR_TICK_MS = 900;
+const FIRST_EVENT_DELAY_MS = 7_000;
+const EVENT_GAP_MIN_MS = 14_000;
+const EVENT_GAP_RAND_MS = 22_000;
+const LINE_MS = 2_600;
+const SOLO_BUBBLE_MS = 3_600;
+const PAIR_COOLDOWN_MS = 5 * 60_000;
+const MEET_DISTANCE_PX = 38;
+const SOLO_CHANCE = 0.45;
+
 export function TownMap() {
   const router = useRouter();
   const liveStatus = useLiveStatus();
@@ -174,6 +202,133 @@ export function TownMap() {
   const [userChars, setUserChars] = useState<UserCharacter[]>([]);
   const [approvedCount, setApprovedCount] = useState<number | null>(null);
   const [interior, setInterior] = useState<InteriorId>(null);
+
+  /* street life: bubbles/pauses/facing driven by the director below */
+  const [streetBubbles, setStreetBubbles] = useState<Record<string, string>>({});
+  const [pausedIds, setPausedIds] = useState<Record<string, boolean>>({});
+  const [faces, setFaces] = useState<Record<string, "left" | "right">>({});
+  const walkerEls = useRef<Map<string, HTMLButtonElement>>(new Map());
+  const streetRef = useRef<HTMLDivElement | null>(null);
+  const walkersRef = useRef<Walker[]>([]);
+  const recordsRef = useRef(records);
+  recordsRef.current = records;
+
+  /* ── street-life director ─────────────────────────────────
+     Watches the street and, without any user input, makes
+     citizens chat: when two walkers cross paths they stop, face
+     each other and exchange lines; otherwise someone occasionally
+     talks to themselves. All client-side — positions come from
+     the rendered DOM, so pausing keeps everything consistent. */
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    let cancelled = false;
+    let busy = false;
+    let nextEventAt = Date.now() + FIRST_EVENT_DELAY_MS;
+    const pairCooldown = new Map<string, number>();
+    const timeouts: ReturnType<typeof setTimeout>[] = [];
+
+    const later = (fn: () => void, ms: number) => {
+      const t = setTimeout(() => {
+        if (!cancelled) fn();
+      }, ms);
+      timeouts.push(t);
+    };
+
+    const clearEvent = () => {
+      setStreetBubbles({});
+      setPausedIds({});
+      setFaces({});
+      busy = false;
+      nextEventAt = Date.now() + EVENT_GAP_MIN_MS + Math.random() * EVENT_GAP_RAND_MS;
+    };
+
+    const toParticipant = (w: Walker) => ({
+      name: w.name,
+      kind: walkerKind(w),
+      record: walkerKind(w) === "citizen" ? recordsRef.current[w.name.toLowerCase()] : undefined,
+    });
+
+    const runConvo = (a: Walker, b: Walker, aCx: number, bCx: number) => {
+      busy = true;
+      const aLeftOfB = aCx < bCx;
+      setPausedIds({ [a.id]: true, [b.id]: true });
+      setFaces({
+        [a.id]: aLeftOfB ? "right" : "left",
+        [b.id]: aLeftOfB ? "left" : "right",
+      });
+      const lines = buildDialogue(toParticipant(a), toParticipant(b));
+      lines.forEach((line, i) => {
+        later(() => {
+          setStreetBubbles({ [line.speaker === "a" ? a.id : b.id]: line.text });
+        }, i * LINE_MS);
+      });
+      later(clearEvent, lines.length * LINE_MS + 500);
+    };
+
+    const runSolo = (w: Walker) => {
+      busy = true;
+      const kind = walkerKind(w);
+      const record = kind === "citizen" ? recordsRef.current[w.name.toLowerCase()] : undefined;
+      const text =
+        kind === "citizen" && record && Math.random() < 0.3
+          ? `recorde: ${record.score} no ${record.game}`
+          : pickPhrase(kind);
+      setStreetBubbles({ [w.id]: text });
+      later(clearEvent, SOLO_BUBBLE_MS);
+    };
+
+    const tickFn = () => {
+      if (busy || Date.now() < nextEventAt || document.hidden) return;
+
+      const street = streetRef.current?.getBoundingClientRect();
+      if (!street) return;
+
+      /* positions of walkers currently visible inside the street */
+      const positions = walkersRef.current
+        .map((w) => {
+          const el = walkerEls.current.get(w.id);
+          if (!el) return null;
+          const r = el.getBoundingClientRect();
+          return { w, cx: r.left + r.width / 2 };
+        })
+        .filter(
+          (p): p is { w: Walker; cx: number } =>
+            p !== null && p.cx > street.left + 50 && p.cx < street.right - 50,
+        );
+
+      /* two walkers close enough? they meet */
+      const now = Date.now();
+      for (let i = 0; i < positions.length; i++) {
+        for (let j = i + 1; j < positions.length; j++) {
+          if (Math.abs(positions[i].cx - positions[j].cx) > MEET_DISTANCE_PX) continue;
+          const key = [positions[i].w.id, positions[j].w.id].sort().join("|");
+          if ((pairCooldown.get(key) ?? 0) > now) continue;
+          pairCooldown.set(key, now + PAIR_COOLDOWN_MS);
+          runConvo(positions[i].w, positions[j].w, positions[i].cx, positions[j].cx);
+          return;
+        }
+      }
+
+      /* nobody met: sometimes someone talks to themselves */
+      if (positions.length > 0 && Math.random() < SOLO_CHANCE) {
+        runSolo(positions[Math.floor(Math.random() * positions.length)].w);
+      }
+    };
+
+    const tick = setInterval(tickFn, DIRECTOR_TICK_MS);
+
+    /* manual trigger for local debugging (background tabs throttle timers) */
+    if (process.env.NODE_ENV !== "production") {
+      (window as unknown as Record<string, unknown>).__townTick = tickFn;
+    }
+
+    return () => {
+      cancelled = true;
+      clearInterval(tick);
+      timeouts.forEach(clearTimeout);
+    };
+  }, []);
 
   /* close interiors with ESC and lock page scroll while inside */
   useEffect(() => {
@@ -217,6 +372,7 @@ export function TownMap() {
       mine: ch.mine,
     })),
   ];
+  walkersRef.current = walkers;
   const population = 3 + (approvedCount ?? 0);
 
   const audience: AudienceMember[] = [
@@ -485,13 +641,20 @@ export function TownMap() {
           </svg>
 
           {/* walking citizens (HTML layer over the street) */}
-          <div className="town__street-chars">
+          <div className="town__street-chars" ref={streetRef}>
             {walkers.map((w) => (
               <TownWalker
                 key={w.id}
                 walker={w}
                 isMe={!!w.mine}
                 record={records[w.name.toLowerCase()]}
+                autoBubble={streetBubbles[w.id] ?? null}
+                autoPaused={!!pausedIds[w.id]}
+                face={faces[w.id] ?? null}
+                onEl={(el) => {
+                  if (el) walkerEls.current.set(w.id, el);
+                  else walkerEls.current.delete(w.id);
+                }}
               />
             ))}
           </div>

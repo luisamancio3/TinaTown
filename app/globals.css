@@ -1667,6 +1667,18 @@ button.town-walker {
   z-index: 5;
 }
 
+/* facing override during street encounters (must come after the
+   direction rules so it wins the cascade) */
+.town-walker--face-right .town-walker__sprite,
+.town-walker--left.town-walker--face-right .town-walker__sprite {
+  transform: scaleX(1);
+}
+
+.town-walker--face-left .town-walker__sprite,
+.town-walker--left.town-walker--face-left .town-walker__sprite {
+  transform: scaleX(-1);
+}
+
 .speech-bubble {
   position: absolute;
   bottom: calc(100% + 8px);
