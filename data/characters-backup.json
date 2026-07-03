@@ -1,9 +1,11 @@
 {
-  "savedAt": "2026-07-03T00:19:05.873Z",
+  "savedAt": "2026-07-03T02:08:34.465Z",
   "characters": {
-    "eed9c71943428c65": "{\"name\":\"Lamancio\",\"style\":\"feminino\",\"hairStyle\":\"curto\",\"accessory\":\"oculos\",\"skin\":\"#c68642\",\"hair\":\"#f0f0f5\",\"eye\":\"#1a1a1a\",\"shirt\":\"#c0392b\",\"pants\":\"#2980b9\",\"createdAt\":1783035625811}"
+    "eed9c71943428c65": "{\"name\":\"Lamancio\",\"style\":\"feminino\",\"hairStyle\":\"curto\",\"accessory\":\"oculos\",\"skin\":\"#c68642\",\"hair\":\"#f0f0f5\",\"eye\":\"#1a1a1a\",\"shirt\":\"#c0392b\",\"pants\":\"#2980b9\",\"createdAt\":1783035625811}",
+    "3caaa0aeb4c47b21": "{\"name\":\"Teixeira\",\"style\":\"feminino\",\"hairStyle\":\"curto\",\"accessory\":\"bone\",\"skin\":\"#c68642\",\"hair\":\"#141418\",\"eye\":\"#1a1a1a\",\"shirt\":\"#8d5dff\",\"pants\":\"#1a1a2e\",\"createdAt\":1783044503776}"
   },
   "archive": {
-    "eed9c71943428c65": "{\"name\":\"Lamancio\",\"style\":\"feminino\",\"hairStyle\":\"curto\",\"accessory\":\"oculos\",\"skin\":\"#c68642\",\"hair\":\"#f0f0f5\",\"eye\":\"#1a1a1a\",\"shirt\":\"#c0392b\",\"pants\":\"#2980b9\",\"createdAt\":1783035625811}"
+    "eed9c71943428c65": "{\"name\":\"Lamancio\",\"style\":\"feminino\",\"hairStyle\":\"curto\",\"accessory\":\"oculos\",\"skin\":\"#c68642\",\"hair\":\"#f0f0f5\",\"eye\":\"#1a1a1a\",\"shirt\":\"#c0392b\",\"pants\":\"#2980b9\",\"createdAt\":1783035625811}",
+    "3caaa0aeb4c47b21": "{\"name\":\"Teixeira\",\"style\":\"feminino\",\"hairStyle\":\"curto\",\"accessory\":\"bone\",\"skin\":\"#c68642\",\"hair\":\"#141418\",\"eye\":\"#1a1a1a\",\"shirt\":\"#8d5dff\",\"pants\":\"#1a1a2e\",\"createdAt\":1783044503776}"
   }
 }
