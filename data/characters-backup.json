@@ -1,11 +1,13 @@
 {
-  "savedAt": "2026-07-03T02:08:34.465Z",
+  "savedAt": "2026-07-03T02:08:36.679Z",
   "characters": {
+    "311dbeeb69b4bd12": "{\"name\":\"Felipe ipe\",\"style\":\"feminino\",\"hairStyle\":\"curto\",\"accessory\":\"nenhum\",\"skin\":\"#fef5f0\",\"hair\":\"#141418\",\"eye\":\"#6b5b3f\",\"shirt\":\"#ff4f9d\",\"pants\":\"#2d2d2d\",\"createdAt\":1783044492326}",
     "eed9c71943428c65": "{\"name\":\"Lamancio\",\"style\":\"feminino\",\"hairStyle\":\"curto\",\"accessory\":\"oculos\",\"skin\":\"#c68642\",\"hair\":\"#f0f0f5\",\"eye\":\"#1a1a1a\",\"shirt\":\"#c0392b\",\"pants\":\"#2980b9\",\"createdAt\":1783035625811}",
     "3caaa0aeb4c47b21": "{\"name\":\"Teixeira\",\"style\":\"feminino\",\"hairStyle\":\"curto\",\"accessory\":\"bone\",\"skin\":\"#c68642\",\"hair\":\"#141418\",\"eye\":\"#1a1a1a\",\"shirt\":\"#8d5dff\",\"pants\":\"#1a1a2e\",\"createdAt\":1783044503776}"
   },
   "archive": {
-    "eed9c71943428c65": "{\"name\":\"Lamancio\",\"style\":\"feminino\",\"hairStyle\":\"curto\",\"accessory\":\"oculos\",\"skin\":\"#c68642\",\"hair\":\"#f0f0f5\",\"eye\":\"#1a1a1a\",\"shirt\":\"#c0392b\",\"pants\":\"#2980b9\",\"createdAt\":1783035625811}",
-    "3caaa0aeb4c47b21": "{\"name\":\"Teixeira\",\"style\":\"feminino\",\"hairStyle\":\"curto\",\"accessory\":\"bone\",\"skin\":\"#c68642\",\"hair\":\"#141418\",\"eye\":\"#1a1a1a\",\"shirt\":\"#8d5dff\",\"pants\":\"#1a1a2e\",\"createdAt\":1783044503776}"
+    "311dbeeb69b4bd12": "{\"name\":\"Felipe ipe\",\"style\":\"feminino\",\"hairStyle\":\"curto\",\"accessory\":\"nenhum\",\"skin\":\"#fef5f0\",\"hair\":\"#141418\",\"eye\":\"#6b5b3f\",\"shirt\":\"#ff4f9d\",\"pants\":\"#2d2d2d\",\"createdAt\":1783044492326}",
+    "3caaa0aeb4c47b21": "{\"name\":\"Teixeira\",\"style\":\"feminino\",\"hairStyle\":\"curto\",\"accessory\":\"bone\",\"skin\":\"#c68642\",\"hair\":\"#141418\",\"eye\":\"#1a1a1a\",\"shirt\":\"#8d5dff\",\"pants\":\"#1a1a2e\",\"createdAt\":1783044503776}",
+    "eed9c71943428c65": "{\"name\":\"Lamancio\",\"style\":\"feminino\",\"hairStyle\":\"curto\",\"accessory\":\"oculos\",\"skin\":\"#c68642\",\"hair\":\"#f0f0f5\",\"eye\":\"#1a1a1a\",\"shirt\":\"#c0392b\",\"pants\":\"#2980b9\",\"createdAt\":1783035625811}"
   }
 }
