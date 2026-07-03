@@ -1645,7 +1645,459 @@ input {
   .town__bulb,
   .town__star,
   .town__live-chip,
-  .town-walker__me-tag {
+  .town-walker__me-tag,
+  .cine-head,
+  .house__window {
     animation: none !important;
   }
+}
+
+/* ── talking citizens ──────────────────────────────────── */
+button.town-walker {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.town-walker--talking {
+  animation-play-state: paused;
+  z-index: 5;
+}
+
+.speech-bubble {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fffdf5;
+  color: #1a1420;
+  font-size: 7px;
+  line-height: 1.5;
+  padding: 6px 8px;
+  border: 2px solid #1a1420;
+  border-radius: 6px;
+  max-width: 220px;
+  white-space: normal;
+  width: max-content;
+  text-align: center;
+  z-index: 6;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.45);
+}
+
+.speech-bubble::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: #1a1420;
+}
+
+/* ── bairro dos cidadaos ───────────────────────────────── */
+.bairro {
+  border-top: 2px solid rgba(255, 255, 255, 0.08);
+  background: rgba(14, 11, 23, 0.55);
+  padding: 0.8rem 1rem 1rem;
+}
+
+.bairro__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.7rem;
+}
+
+.bairro__title {
+  margin: 0;
+  font-size: 9px;
+  color: #ffd95e;
+  letter-spacing: 0.04em;
+}
+
+.bairro__count {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.bairro__empty {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.bairro__empty a {
+  color: var(--pink);
+}
+
+.bairro__row {
+  display: flex;
+  gap: 0.9rem;
+  overflow-x: auto;
+  padding: 2.4rem 0.2rem 0.4rem;
+  scrollbar-width: thin;
+}
+
+.house {
+  position: relative;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  outline: none;
+}
+
+.house:hover .house__svg,
+.house:focus-visible .house__svg {
+  filter: brightness(1.15) drop-shadow(0 0 8px rgba(255, 79, 157, 0.5));
+}
+
+.house__svg {
+  width: 74px;
+  height: auto;
+  image-rendering: pixelated;
+  transition: filter 0.2s ease;
+}
+
+.town--night .house__window {
+  animation: house-glow 2.6s ease-in-out infinite;
+}
+
+@keyframes house-glow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.75; }
+}
+
+.house__plate {
+  font-size: 7px;
+  color: var(--text);
+  text-transform: uppercase;
+  white-space: nowrap;
+  max-width: 92px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.house--mine .house__plate {
+  color: #ffd95e;
+}
+
+/* ── building interiors (modal) ────────────────────────── */
+.interior-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(8, 5, 16, 0.82);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.interior-shell {
+  position: relative;
+  width: min(860px, 100%);
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+  border-radius: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.18);
+  background: #17121f;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+}
+
+.interior-close {
+  position: sticky;
+  top: 10px;
+  margin-left: calc(100% - 92px);
+  margin-right: 10px;
+  z-index: 5;
+  font-size: 8px;
+  color: var(--text);
+  background: rgba(14, 11, 23, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.interior-close:hover {
+  background: rgba(255, 79, 157, 0.3);
+}
+
+.interior {
+  padding: 0 1.2rem 1.4rem;
+  margin-top: -1.4rem;
+}
+
+.interior__title {
+  margin: 0 0 0.3rem;
+  font-size: 16px;
+  color: #ffd95e;
+  text-shadow: 0 0 12px rgba(255, 217, 94, 0.5);
+  text-align: center;
+}
+
+.interior__title--cine {
+  color: #ff8fbe;
+  text-shadow: 0 0 12px rgba(255, 79, 157, 0.55);
+}
+
+.interior__hint {
+  margin: 0 0 1.1rem;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.interior__footer-link {
+  display: inline-block;
+  margin-top: 1rem;
+}
+
+/* fliperama room */
+.interior--fliperama {
+  background:
+    linear-gradient(to top, rgba(61, 43, 128, 0.25), transparent 40%),
+    repeating-linear-gradient(90deg, transparent 0 46px, rgba(255, 255, 255, 0.025) 46px 48px);
+}
+
+.cabinet-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.9rem;
+}
+
+@media (min-width: 640px) {
+  .cabinet-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.cabinet {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  outline: none;
+  transition: transform 0.15s ease;
+}
+
+.cabinet:hover,
+.cabinet:focus-visible {
+  transform: translateY(-4px);
+}
+
+.cabinet__marquee {
+  font-size: 7px;
+  color: #ffd95e;
+  background: #241a48;
+  border: 2px solid #3d2b80;
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  padding: 7px 4px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cabinet:hover .cabinet__marquee {
+  color: #fff;
+  text-shadow: 0 0 8px rgba(255, 217, 94, 0.8);
+}
+
+.cabinet__screen {
+  display: block;
+  aspect-ratio: 16 / 10;
+  background: #0a0a14;
+  border-left: 6px solid #3d2b80;
+  border-right: 6px solid #3d2b80;
+  overflow: hidden;
+}
+
+.cabinet__screen .game-preview {
+  width: 100%;
+  height: 100%;
+}
+
+.cabinet__panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: linear-gradient(#3d2b80, #241a48);
+  border-radius: 0 0 6px 6px;
+  padding: 8px 0;
+}
+
+.cabinet__joystick {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ff4f9d;
+  box-shadow: 0 -6px 0 -2px #d8d2c8;
+}
+
+.cabinet__btn {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.cabinet__btn--a { background: #42d9cf; }
+.cabinet__btn--b { background: #ffd95e; }
+
+.cabinet__cta {
+  font-size: 7px;
+  color: var(--muted);
+  padding-top: 6px;
+  text-align: center;
+}
+
+.cabinet:hover .cabinet__cta {
+  color: #ffd95e;
+}
+
+/* cine room */
+.cine-screen {
+  border: 6px solid #0a0710;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #000;
+  box-shadow: 0 0 34px rgba(255, 143, 190, 0.22);
+}
+
+.cine-screen__link {
+  display: block;
+  position: relative;
+  text-decoration: none;
+  color: var(--text);
+}
+
+.cine-screen__thumb {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.cine-screen__banner {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0.6rem 0.8rem;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.88));
+}
+
+.cine-screen__clip-title {
+  font-weight: 700;
+  font-size: 0.92rem;
+}
+
+.cine-screen__clip-meta {
+  font-size: 0.75rem;
+  color: #ffd2e8;
+}
+
+.cine-screen__empty {
+  aspect-ratio: 16 / 9;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.cine-screen__empty a {
+  color: var(--pink);
+  font-size: 0.8rem;
+}
+
+.cine-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 0.6rem;
+}
+
+.cine-dots__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+}
+
+.cine-dots__dot--active {
+  background: var(--pink);
+  border-color: var(--pink);
+}
+
+.cine-audience {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 0.9rem;
+}
+
+.cine-audience__row {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+}
+
+.cine-audience__row:nth-child(2) {
+  transform: translateX(12px);
+}
+
+.cine-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: cine-bob 3.2s ease-in-out infinite;
+}
+
+@keyframes cine-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+.cine-head__hair {
+  width: 16px;
+  height: 12px;
+  border-radius: 6px 6px 0 0;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.22);
+}
+
+.cine-head__neck {
+  width: 8px;
+  height: 4px;
+}
+
+.cine-head__seat {
+  width: 24px;
+  height: 8px;
+  background: #3a2334;
+  border-radius: 4px 4px 0 0;
 }
