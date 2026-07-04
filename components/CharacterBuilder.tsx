@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { PixelHuman } from "./WalkingCharacters";
+import { PixelHuman, PixelCat, PixelDog } from "./WalkingCharacters";
 import {
   deriveCharacterColors,
   SKIN_PRESETS,
@@ -9,12 +9,16 @@ import {
   EYE_PRESETS,
   SHIRT_PRESETS,
   PANTS_PRESETS,
+  PET_PRESETS,
   VALID_HAIRSTYLES,
   HAIRSTYLE_LABELS,
   VALID_ACCESSORIES,
   ACCESSORY_LABELS,
+  VALID_PETS,
+  PET_LABELS,
   type HairStyle,
   type Accessory,
+  type Pet,
 } from "@/lib/colors";
 
 function getClientId(): string {
@@ -98,6 +102,8 @@ export function CharacterBuilder() {
   const [name, setName] = useState("");
   const [hairStyle, setHairStyle] = useState<HairStyle>("longo");
   const [accessory, setAccessory] = useState<Accessory>("nenhum");
+  const [pet, setPet] = useState<Pet>("nenhum");
+  const [petColor, setPetColor] = useState(PET_PRESETS[0]);
   const [skin, setSkin] = useState(SKIN_PRESETS[0]);
   const [hair, setHair] = useState(HAIR_PRESETS[0]);
   const [eye, setEye] = useState(EYE_PRESETS[0]);
@@ -130,6 +136,8 @@ export function CharacterBuilder() {
           setName(mine.name);
           setHairStyle(mine.hairStyle || "longo");
           setAccessory(mine.accessory || "nenhum");
+          setPet(mine.pet || "nenhum");
+          setPetColor(mine.petColor || PET_PRESETS[0]);
           setSkin(mine.skin);
           setHair(mine.hair);
           setEye(mine.eye || EYE_PRESETS[0]);
@@ -157,6 +165,8 @@ export function CharacterBuilder() {
           style: "feminino",
           hairStyle,
           accessory,
+          pet,
+          petColor,
           skin,
           hair,
           eye,
@@ -186,6 +196,8 @@ export function CharacterBuilder() {
         setName("");
         setHairStyle("longo");
         setAccessory("nenhum");
+        setPet("nenhum");
+        setPetColor(PET_PRESETS[0]);
         setSkin(SKIN_PRESETS[0]);
         setHair(HAIR_PRESETS[0]);
         setEye(EYE_PRESETS[0]);
@@ -210,6 +222,15 @@ export function CharacterBuilder() {
       {/* ── preview panel ── */}
       <div className="char-builder__preview">
         <div className="char-builder__sprite">
+          {pet !== "nenhum" && (
+            <span className="char-builder__pet">
+              {pet === "gato" ? (
+                <PixelCat frame={frame} color={petColor} />
+              ) : (
+                <PixelDog frame={frame} color={petColor} />
+              )}
+            </span>
+          )}
           <PixelHuman
             frame={frame}
             colors={colors}
@@ -265,6 +286,18 @@ export function CharacterBuilder() {
           value={accessory}
           onChange={(v) => { setAccessory(v); markDirty(); }}
         />
+
+        {/* pet */}
+        <OptionRow
+          label="Pet"
+          options={VALID_PETS}
+          labels={PET_LABELS}
+          value={pet}
+          onChange={(v) => { setPet(v); markDirty(); }}
+        />
+        {pet !== "nenhum" && (
+          <SwatchRow label="Cor do Pet" presets={PET_PRESETS} value={petColor} onChange={(c) => { setPetColor(c); markDirty(); }} />
+        )}
 
         <div className="char-builder__actions">
           <button

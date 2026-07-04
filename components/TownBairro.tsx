@@ -26,9 +26,11 @@ const BUBBLE_MS = 4500;
 function House({
   resident,
   record,
+  away,
 }: {
   resident: BairroResident;
   record?: CharacterRecord;
+  away?: boolean;
 }) {
   const [bubble, setBubble] = useState<string | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -56,9 +58,10 @@ function House({
   return (
     <button
       type="button"
-      className={`house${resident.mine ? " house--mine" : ""}`}
+      className={`house${resident.mine ? " house--mine" : ""}${away ? " house--away" : ""}`}
       onClick={talk}
       aria-label={`Casa de ${resident.name}`}
+      title={away ? `${resident.name} saiu — luzes apagadas` : undefined}
     >
       {bubble && (
         <span className={`speech-bubble ${pixelFont.className}`} role="status">
@@ -87,9 +90,11 @@ function House({
 export function TownBairro({
   residents,
   records,
+  awayIds,
 }: {
   residents: BairroResident[];
   records: Record<string, CharacterRecord>;
+  awayIds?: Record<string, boolean>;
 }) {
   return (
     <div className="bairro">
@@ -106,7 +111,12 @@ export function TownBairro({
       ) : (
         <div className="bairro__row">
           {residents.map((r) => (
-            <House key={r.id} resident={r} record={records[r.name.toLowerCase()]} />
+            <House
+              key={r.id}
+              resident={r}
+              record={records[r.name.toLowerCase()]}
+              away={!!awayIds?.[r.id]}
+            />
           ))}
         </div>
       )}

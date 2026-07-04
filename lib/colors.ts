@@ -97,6 +97,21 @@ export const ACCESSORY_LABELS: Record<Accessory, string> = {
   bandana: "Bandana",
 };
 
+/* ── pets ────────────────────────────────────────────────── */
+
+export type Pet = "nenhum" | "gato" | "cachorro";
+export const VALID_PETS: Pet[] = ["nenhum", "gato", "cachorro"];
+
+export const PET_LABELS: Record<Pet, string> = {
+  nenhum: "Nenhum",
+  gato: "Gato",
+  cachorro: "Cachorro",
+};
+
+export const PET_PRESETS = [
+  "#f5f5f5", "#2b2b2b", "#e8963c", "#8b5a2b", "#9aa0ab", "#f4c2d7",
+];
+
 /* ── full color set used by PixelHuman ────────────────────── */
 
 export interface HumanColors {

@@ -8,15 +8,30 @@ export type CharacterRecord = {
   game: string;
 };
 
+export type GameLeader = {
+  slug: string;
+  game: string;
+  name: string;
+  score: number;
+};
+
+export type RecordsData = {
+  /** best score per player name (lowercased) across all games */
+  byName: Record<string, CharacterRecord>;
+  /** current #1 of each game's scoreboard */
+  leaders: GameLeader[];
+};
+
 type ScoreEntry = { name: string; score: number };
 
+const EMPTY: RecordsData = { byName: {}, leaders: [] };
+
 /**
- * Best score per player name across all games (name, lowercased).
- * Used by speech bubbles: citizens brag about their records when the
- * scoreboard name matches the character name.
+ * Scoreboard data used around the town: speech bubbles brag about
+ * records, and the plaza gossip ticker reports scoreboard leaders.
  */
-export function useRecords(): Record<string, CharacterRecord> {
-  const [records, setRecords] = useState<Record<string, CharacterRecord>>({});
+export function useRecords(): RecordsData {
+  const [data, setData] = useState<RecordsData>(EMPTY);
 
   useEffect(() => {
     let cancelled = false;
@@ -26,24 +41,28 @@ export function useRecords(): Record<string, CharacterRecord> {
         try {
           const res = await fetch(`/api/scores?game=${game.slug}`);
           if (!res.ok) return { game, top: [] as ScoreEntry[] };
-          const data = await res.json();
-          return { game, top: (data.top || []) as ScoreEntry[] };
+          const payload = await res.json();
+          return { game, top: (payload.top || []) as ScoreEntry[] };
         } catch {
           return { game, top: [] as ScoreEntry[] };
         }
       }),
     ).then((results) => {
       if (cancelled) return;
-      const map: Record<string, CharacterRecord> = {};
+      const byName: Record<string, CharacterRecord> = {};
+      const leaders: GameLeader[] = [];
       for (const { game, top } of results) {
+        if (top.length > 0) {
+          leaders.push({ slug: game.slug, game: game.title, name: top[0].name, score: top[0].score });
+        }
         for (const entry of top) {
           const key = entry.name.toLowerCase();
-          if (!map[key] || entry.score > map[key].score) {
-            map[key] = { score: entry.score, game: game.title };
+          if (!byName[key] || entry.score > byName[key].score) {
+            byName[key] = { score: entry.score, game: game.title };
           }
         }
       }
-      setRecords(map);
+      setData({ byName, leaders });
     });
 
     return () => {
@@ -51,5 +70,5 @@ export function useRecords(): Record<string, CharacterRecord> {
     };
   }, []);
 
-  return records;
+  return data;
 }

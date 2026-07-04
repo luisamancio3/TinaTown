@@ -3,18 +3,28 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Press_Start_2P } from "next/font/google";
-import { PixelHuman, PixelCat } from "@/components/WalkingCharacters";
+import { PixelHuman, PixelCat, PixelDog } from "@/components/WalkingCharacters";
 import { FliperamaInterior } from "@/components/FliperamaInterior";
 import { CineInterior, type AudienceMember } from "@/components/CineInterior";
 import { TownBairro } from "@/components/TownBairro";
+import { TownTicker } from "@/components/TownTicker";
 import { useLiveStatus } from "@/lib/useLiveStatus";
-import { pickPhrase, buildDialogue, type WalkerKind } from "@/lib/phrases";
+import {
+  pickPhrase,
+  buildDialogue,
+  pickCelebrationShout,
+  pickWatchPhrase,
+  pickVisitPhrase,
+  type WalkerKind,
+  type TownBuilding,
+} from "@/lib/phrases";
 import { useRecords, type CharacterRecord } from "@/lib/useRecords";
 import {
   deriveCharacterColors,
   type HumanColors,
   type HairStyle,
   type Accessory,
+  type Pet,
 } from "@/lib/colors";
 
 const pixelFont = Press_Start_2P({ weight: "400", subsets: ["latin"], display: "swap" });
@@ -68,6 +78,8 @@ type Walker = {
   colors?: HumanColors;
   hairStyle?: HairStyle;
   accessory?: Accessory;
+  pet?: Pet;
+  petColor?: string;
   mine?: boolean;
 };
 
@@ -85,6 +97,8 @@ function TownWalker({
   autoBubble,
   autoPaused,
   face,
+  away,
+  live,
   onEl,
 }: {
   walker: Walker;
@@ -93,6 +107,8 @@ function TownWalker({
   autoBubble?: string | null;
   autoPaused?: boolean;
   face?: "left" | "right" | null;
+  away?: boolean;
+  live?: boolean;
   onEl?: (el: HTMLButtonElement | null) => void;
 }) {
   const [frame, setFrame] = useState<0 | 1>(0);
@@ -119,7 +135,7 @@ function TownWalker({
     const text =
       kind === "citizen" && record && Math.random() < 0.4
         ? `recorde: ${record.score} no ${record.game}`
-        : pickPhrase(kind);
+        : pickPhrase(kind, { live });
     setBubble(text);
     if (bubbleTimer.current) clearTimeout(bubbleTimer.current);
     bubbleTimer.current = setTimeout(() => setBubble(null), BUBBLE_MS);
@@ -133,7 +149,7 @@ function TownWalker({
     <button
       type="button"
       ref={onEl}
-      className={`town-walker${goesLeft ? " town-walker--left" : ""}${isMe ? " town-walker--me" : ""}${isTalking ? " town-walker--talking" : ""}${face ? ` town-walker--face-${face}` : ""}`}
+      className={`town-walker${goesLeft ? " town-walker--left" : ""}${isMe ? " town-walker--me" : ""}${isTalking ? " town-walker--talking" : ""}${face ? ` town-walker--face-${face}` : ""}${away ? " town-walker--inside" : ""}`}
       style={{ animationDuration: `${dur}s`, animationDelay: `${delay}s`, bottom: `${bottom}%` }}
       onClick={talk}
       aria-label={`Falar com ${walker.name}`}
@@ -146,6 +162,15 @@ function TownWalker({
       {isMe && !bubbleText && <span className={`town-walker__me-tag ${pixelFont.className}`}>voce</span>}
       <span className={`town-walker__name ${pixelFont.className}`}>{walker.name}</span>
       <span className="town-walker__sprite">
+        {walker.pet && walker.pet !== "nenhum" && (
+          <span className="town-walker__pet">
+            {walker.pet === "gato" ? (
+              <PixelCat frame={frame} color={walker.petColor} />
+            ) : (
+              <PixelDog frame={frame} color={walker.petColor} />
+            )}
+          </span>
+        )}
         {walker.kind === "human" ? (
           <PixelHuman
             frame={frame}
@@ -172,6 +197,8 @@ type UserCharacter = {
   eye?: string;
   hairStyle?: HairStyle;
   accessory?: Accessory;
+  pet?: Pet;
+  petColor?: string;
   pending?: boolean;
   mine?: boolean;
 };
@@ -194,6 +221,24 @@ const SOLO_BUBBLE_MS = 3_600;
 const PAIR_COOLDOWN_MS = 5 * 60_000;
 const MEET_DISTANCE_PX = 38;
 const SOLO_CHANCE = 0.45;
+const WATCH_CHANCE = 0.3;
+const VISIT_CHANCE = 0.3;
+const WATCH_MS = 6_000;
+const VISIT_MIN_MS = 18_000;
+const VISIT_RAND_MS = 18_000;
+const CELEBRATION_MS = 32_000;
+const CELEBRATION_MIN_UPTIME_MS = 75_000;
+
+/* praca band + building doors, as fractions of the 1200-wide scene */
+const PLAZA_MIN = 0.39;
+const PLAZA_MAX = 0.61;
+const DOORS: { building: TownBuilding; at: number }[] = [
+  { building: "fliperama", at: 140 / 1200 },
+  { building: "bar", at: 344 / 1200 },
+  { building: "cine", at: 862 / 1200 },
+  { building: "salao", at: 1082 / 1200 },
+];
+const DOOR_RANGE = 0.03;
 
 export function TownMap() {
   const router = useRouter();
@@ -207,11 +252,106 @@ export function TownMap() {
   const [streetBubbles, setStreetBubbles] = useState<Record<string, string>>({});
   const [pausedIds, setPausedIds] = useState<Record<string, boolean>>({});
   const [faces, setFaces] = useState<Record<string, "left" | "right">>({});
+  const [awayIds, setAwayIds] = useState<Record<string, boolean>>({});
   const walkerEls = useRef<Map<string, HTMLButtonElement>>(new Map());
   const streetRef = useRef<HTMLDivElement | null>(null);
   const walkersRef = useRef<Walker[]>([]);
   const recordsRef = useRef(records);
   recordsRef.current = records;
+  const awayRef = useRef(awayIds);
+  awayRef.current = awayIds;
+  const isNightRef = useRef(false);
+  const celebratingRef = useRef(false);
+  const celebrationTimeouts = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const mountedAtRef = useRef(0);
+  const prevStatusRef = useRef<string | null>(null);
+
+  /* ── "COMECOU!": when the live starts, everyone runs to the praca ── */
+  useEffect(() => {
+    mountedAtRef.current = Date.now();
+    return () => {
+      celebrationTimeouts.current.forEach(clearTimeout);
+    };
+  }, []);
+
+  function startCelebration() {
+    if (celebratingRef.current) return;
+    const street = streetRef.current;
+    if (!street) return;
+    celebratingRef.current = true;
+
+    const laterC = (fn: () => void, ms: number) => {
+      celebrationTimeouts.current.push(setTimeout(fn, ms));
+    };
+
+    const sw = street.clientWidth;
+    const streetRect = street.getBoundingClientRect();
+    const list = walkersRef.current;
+    const newFaces: Record<string, "left" | "right"> = {};
+
+    list.forEach((w, i) => {
+      const el = walkerEls.current.get(w.id);
+      if (!el) return;
+      /* freeze at the current animated position... */
+      const curLeft = el.getBoundingClientRect().left - streetRect.left;
+      el.style.animation = "none";
+      el.style.transition = "none";
+      el.style.left = `${curLeft}px`;
+      /* force a reflow so the frozen position commits before the glide
+         (requestAnimationFrame is suspended in hidden tabs) */
+      void el.offsetWidth;
+      /* ...then glide to a spot in the praca, facing the telao */
+      const t = PLAZA_MIN + ((PLAZA_MAX - PLAZA_MIN) * ((i * 37) % 100)) / 100;
+      newFaces[w.id] = t < 0.5 ? "right" : "left";
+      el.style.transition = "left 2.8s ease-in-out";
+      el.style.left = `${t * sw}px`;
+    });
+    setFaces(newFaces);
+
+    /* excited shouting while the crowd gathers */
+    const shoutTimes = [600, 1800, 3200, 4800, 6800, 12_000, 20_000];
+    shoutTimes.forEach((ms) => {
+      laterC(() => {
+        const w = list[Math.floor(Math.random() * list.length)];
+        if (!w) return;
+        setStreetBubbles((prev) => ({ ...prev, [w.id]: pickCelebrationShout() }));
+        laterC(() => {
+          setStreetBubbles((prev) => {
+            const next = { ...prev };
+            delete next[w.id];
+            return next;
+          });
+        }, 2400);
+      }, ms);
+    });
+
+    laterC(() => {
+      /* disperse: hand control back to the CSS walk animation */
+      list.forEach((w) => {
+        const el = walkerEls.current.get(w.id);
+        if (!el) return;
+        el.style.animation = "";
+        el.style.left = "";
+        el.style.transition = "";
+      });
+      setFaces({});
+      setStreetBubbles({});
+      celebratingRef.current = false;
+    }, CELEBRATION_MS);
+  }
+
+  useEffect(() => {
+    const prev = prevStatusRef.current;
+    prevStatusRef.current = liveStatus;
+    if (prev === "offline" && liveStatus === "online") {
+      /* only celebrate a transition we actually witnessed — the first
+         fetched status right after load is just the baseline */
+      if (Date.now() - mountedAtRef.current > CELEBRATION_MIN_UPTIME_MS) {
+        startCelebration();
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [liveStatus]);
 
   /* ── street-life director ─────────────────────────────────
      Watches the street and, without any user input, makes
@@ -236,17 +376,19 @@ export function TownMap() {
     };
 
     const clearEvent = () => {
+      busy = false;
+      nextEventAt = Date.now() + EVENT_GAP_MIN_MS + Math.random() * EVENT_GAP_RAND_MS;
+      /* a celebration may have taken over mid-event: leave its stage alone */
+      if (celebratingRef.current) return;
       setStreetBubbles({});
       setPausedIds({});
       setFaces({});
-      busy = false;
-      nextEventAt = Date.now() + EVENT_GAP_MIN_MS + Math.random() * EVENT_GAP_RAND_MS;
     };
 
     const toParticipant = (w: Walker) => ({
       name: w.name,
       kind: walkerKind(w),
-      record: walkerKind(w) === "citizen" ? recordsRef.current[w.name.toLowerCase()] : undefined,
+      record: walkerKind(w) === "citizen" ? recordsRef.current.byName[w.name.toLowerCase()] : undefined,
     });
 
     const runConvo = (a: Walker, b: Walker, aCx: number, bCx: number) => {
@@ -257,9 +399,12 @@ export function TownMap() {
         [a.id]: aLeftOfB ? "right" : "left",
         [b.id]: aLeftOfB ? "left" : "right",
       });
-      const lines = buildDialogue(toParticipant(a), toParticipant(b));
+      const lines = buildDialogue(toParticipant(a), toParticipant(b), {
+        live: isNightRef.current,
+      });
       lines.forEach((line, i) => {
         later(() => {
+          if (celebratingRef.current) return;
           setStreetBubbles({ [line.speaker === "a" ? a.id : b.id]: line.text });
         }, i * LINE_MS);
       });
@@ -269,23 +414,59 @@ export function TownMap() {
     const runSolo = (w: Walker) => {
       busy = true;
       const kind = walkerKind(w);
-      const record = kind === "citizen" ? recordsRef.current[w.name.toLowerCase()] : undefined;
+      const record = kind === "citizen" ? recordsRef.current.byName[w.name.toLowerCase()] : undefined;
       const text =
         kind === "citizen" && record && Math.random() < 0.3
           ? `recorde: ${record.score} no ${record.game}`
-          : pickPhrase(kind);
+          : pickPhrase(kind, { live: isNightRef.current });
       setStreetBubbles({ [w.id]: text });
       later(clearEvent, SOLO_BUBBLE_MS);
     };
 
+    /* live only: stop in the praca and watch the telao */
+    const runWatch = (w: Walker, cx: number, streetRect: DOMRect) => {
+      busy = true;
+      const center = streetRect.left + streetRect.width / 2;
+      setPausedIds({ [w.id]: true });
+      setFaces({ [w.id]: cx < center ? "right" : "left" });
+      later(() => {
+        if (!celebratingRef.current) {
+          setStreetBubbles({ [w.id]: pickWatchPhrase() });
+        }
+      }, 1200);
+      later(clearEvent, WATCH_MS);
+    };
+
+    /* walk into a building; the house window goes dark while inside */
+    const runVisit = (w: Walker, building: TownBuilding) => {
+      busy = true;
+      setStreetBubbles({ [w.id]: pickVisitPhrase(building) });
+      later(() => {
+        if (celebratingRef.current) return;
+        setStreetBubbles({});
+        setAwayIds((prev) => ({ ...prev, [w.id]: true }));
+      }, 2200);
+      /* the street frees up while they are inside */
+      later(clearEvent, 3200);
+      later(() => {
+        setAwayIds((prev) => {
+          const next = { ...prev };
+          delete next[w.id];
+          return next;
+        });
+      }, VISIT_MIN_MS + Math.random() * VISIT_RAND_MS);
+    };
+
     const tickFn = () => {
-      if (busy || Date.now() < nextEventAt || document.hidden) return;
+      if (busy || celebratingRef.current || Date.now() < nextEventAt || document.hidden) return;
 
       const street = streetRef.current?.getBoundingClientRect();
       if (!street) return;
 
-      /* positions of walkers currently visible inside the street */
+      /* positions of walkers currently visible on the street
+         (skipping whoever is inside a building) */
       const positions = walkersRef.current
+        .filter((w) => !awayRef.current[w.id])
         .map((w) => {
           const el = walkerEls.current.get(w.id);
           if (!el) return null;
@@ -296,6 +477,7 @@ export function TownMap() {
           (p): p is { w: Walker; cx: number } =>
             p !== null && p.cx > street.left + 50 && p.cx < street.right - 50,
         );
+      if (positions.length === 0) return;
 
       /* two walkers close enough? they meet */
       const now = Date.now();
@@ -310,17 +492,53 @@ export function TownMap() {
         }
       }
 
+      /* live ON: someone in the praca stops to watch the telao */
+      if (isNightRef.current && Math.random() < WATCH_CHANCE) {
+        const inPlaza = positions.filter((p) => {
+          const frac = (p.cx - street.left) / street.width;
+          return frac > PLAZA_MIN && frac < PLAZA_MAX;
+        });
+        if (inPlaza.length > 0) {
+          const pick = inPlaza[Math.floor(Math.random() * inPlaza.length)];
+          runWatch(pick.w, pick.cx, street);
+          return;
+        }
+      }
+
+      /* citizen near a door? sometimes they walk in */
+      if (Math.random() < VISIT_CHANCE) {
+        const nearDoor = positions
+          .map((p) => {
+            if (walkerKind(p.w) !== "citizen") return null;
+            const frac = (p.cx - street.left) / street.width;
+            const door = DOORS.find((d) => Math.abs(frac - d.at) < DOOR_RANGE);
+            return door ? { ...p, building: door.building } : null;
+          })
+          .filter((p): p is { w: Walker; cx: number; building: TownBuilding } => p !== null);
+        if (nearDoor.length > 0) {
+          const pick = nearDoor[Math.floor(Math.random() * nearDoor.length)];
+          runVisit(pick.w, pick.building);
+          return;
+        }
+      }
+
       /* nobody met: sometimes someone talks to themselves */
-      if (positions.length > 0 && Math.random() < SOLO_CHANCE) {
+      if (Math.random() < SOLO_CHANCE) {
         runSolo(positions[Math.floor(Math.random() * positions.length)].w);
       }
     };
 
     const tick = setInterval(tickFn, DIRECTOR_TICK_MS);
 
-    /* manual trigger for local debugging (background tabs throttle timers) */
+    /* manual triggers for local debugging (background tabs throttle timers) */
     if (process.env.NODE_ENV !== "production") {
-      (window as unknown as Record<string, unknown>).__townTick = tickFn;
+      const w = window as unknown as Record<string, unknown>;
+      w.__townTick = tickFn;
+      w.__townCelebrate = startCelebration;
+      w.__townVisit = () => {
+        const citizen = walkersRef.current.find((x) => walkerKind(x) === "citizen");
+        if (citizen) runVisit(citizen, "bar");
+      };
     }
 
     return () => {
@@ -360,6 +578,7 @@ export function TownMap() {
   }, []);
 
   const isNight = liveStatus === "online";
+  isNightRef.current = isNight;
   const walkers: Walker[] = [
     ...RESIDENTS,
     ...userChars.map((ch) => ({
@@ -369,6 +588,8 @@ export function TownMap() {
       colors: deriveCharacterColors(ch),
       hairStyle: ch.hairStyle,
       accessory: ch.accessory,
+      pet: ch.pet,
+      petColor: ch.petColor,
       mine: ch.mine,
     })),
   ];
@@ -647,10 +868,12 @@ export function TownMap() {
                 key={w.id}
                 walker={w}
                 isMe={!!w.mine}
-                record={records[w.name.toLowerCase()]}
+                record={records.byName[w.name.toLowerCase()]}
                 autoBubble={streetBubbles[w.id] ?? null}
                 autoPaused={!!pausedIds[w.id]}
                 face={faces[w.id] ?? null}
+                away={!!awayIds[w.id]}
+                live={isNight}
                 onEl={(el) => {
                   if (el) walkerEls.current.set(w.id, el);
                   else walkerEls.current.delete(w.id);
@@ -661,6 +884,14 @@ export function TownMap() {
         </div>
       </div>
 
+      {/* plaza gossip ticker */}
+      <TownTicker
+        population={population}
+        citizenNames={userChars.filter((c) => !c.pending).map((c) => c.name)}
+        leaders={records.leaders}
+        live={isNight}
+      />
+
       {/* status chip (outside the scroll area so it stays visible on mobile) */}
       <div className={`town__status ${pixelFont.className}`}>
         <span className={`status-dot status-dot--${liveStatus}`} aria-hidden="true" />
@@ -668,7 +899,7 @@ export function TownMap() {
       </div>
 
       {/* bairro dos cidadaos: one house per approved character */}
-      <TownBairro residents={userChars} records={records} />
+      <TownBairro residents={userChars} records={records.byName} awayIds={awayIds} />
 
       {/* building interiors */}
       {interior && (

@@ -33,8 +33,8 @@ const DEFAULT_HUMAN_COLORS: HumanColors = {
   blush: "rgba(255,160,160,0.35)",
 };
 
-/** Simple pixel-art white cat (side view), 2 frames for walk bob */
-export function PixelCat({ frame }: { frame: 0 | 1 }) {
+/** Simple pixel-art cat (side view), 2 frames for walk bob */
+export function PixelCat({ frame, color = "#fff" }: { frame: 0 | 1; color?: string }) {
   const bob = frame === 1 ? 1 : 0;
   return (
     <svg
@@ -44,13 +44,60 @@ export function PixelCat({ frame }: { frame: 0 | 1 }) {
       className="walking-char__sprite walking-char__sprite--cat"
       style={{ imageRendering: "pixelated" }}
     >
-      <rect x={PIXEL} y={PIXEL * (2 + bob)} width={PIXEL * 2} height={PIXEL * 2} fill="#fff" />
-      <rect x={PIXEL * 2} y={PIXEL * (0 + bob)} width={PIXEL * 2} height={PIXEL * 2} fill="#fff" />
-      <path d={`M ${PIXEL * 2} ${PIXEL * (0 + bob)} L ${PIXEL * 1.5} ${2} L ${PIXEL} ${PIXEL * (0 + bob)} Z`} fill="#fff" />
-      <path d={`M ${PIXEL * 3} ${PIXEL * (0 + bob)} L ${PIXEL * 3.5} ${2} L ${PIXEL * 4} ${PIXEL * (0 + bob)} Z`} fill="#fff" />
-      <rect x={0} y={PIXEL * (3 + bob)} width={PIXEL} height={PIXEL} fill="#fff" />
+      <rect x={PIXEL} y={PIXEL * (2 + bob)} width={PIXEL * 2} height={PIXEL * 2} fill={color} />
+      <rect x={PIXEL * 2} y={PIXEL * (0 + bob)} width={PIXEL * 2} height={PIXEL * 2} fill={color} />
+      <path d={`M ${PIXEL * 2} ${PIXEL * (0 + bob)} L ${PIXEL * 1.5} ${2} L ${PIXEL} ${PIXEL * (0 + bob)} Z`} fill={color} />
+      <path d={`M ${PIXEL * 3} ${PIXEL * (0 + bob)} L ${PIXEL * 3.5} ${2} L ${PIXEL * 4} ${PIXEL * (0 + bob)} Z`} fill={color} />
+      <rect x={0} y={PIXEL * (3 + bob)} width={PIXEL} height={PIXEL} fill={color} />
       <rect x={PIXEL * 2 + 2} y={PIXEL * (1 + bob)} width={2} height={2} fill="#333" />
       <rect x={PIXEL * 3} y={PIXEL * (1.5 + bob)} width={2} height={1} fill="#ffb3c6" />
+    </svg>
+  );
+}
+
+const DOG_W = 8;
+const DOG_H = 6;
+
+/** Simple pixel-art dog (side view, facing right), 2 frames for walk bob */
+export function PixelDog({ frame, color = "#8b5a2b" }: { frame: 0 | 1; color?: string }) {
+  const bob = frame === 1 ? 0.5 : 0;
+  return (
+    <svg
+      width={DOG_W * PIXEL}
+      height={DOG_H * PIXEL}
+      viewBox={`0 0 ${DOG_W * PIXEL} ${DOG_H * PIXEL}`}
+      className="walking-char__sprite walking-char__sprite--dog"
+      style={{ imageRendering: "pixelated" }}
+    >
+      {/* tail up */}
+      <rect x={PIXEL * 0.4} y={PIXEL * (1.6 + bob)} width={PIXEL * 0.8} height={PIXEL * 1.2} fill={color} />
+      {/* body */}
+      <rect x={PIXEL} y={PIXEL * (2.4 + bob)} width={PIXEL * 4} height={PIXEL * 2} fill={color} />
+      {/* head */}
+      <rect x={PIXEL * 4.5} y={PIXEL * (1 + bob)} width={PIXEL * 2} height={PIXEL * 2} fill={color} />
+      {/* floppy ear */}
+      <rect x={PIXEL * 4.3} y={PIXEL * (0.6 + bob)} width={PIXEL * 0.9} height={PIXEL * 1.4} fill={color} />
+      {/* snout */}
+      <rect x={PIXEL * 6.4} y={PIXEL * (1.8 + bob)} width={PIXEL} height={PIXEL * 0.8} fill={color} />
+      {/* nose */}
+      <rect x={PIXEL * 7.1} y={PIXEL * (1.9 + bob)} width={2} height={2} fill="#333" />
+      {/* eye */}
+      <rect x={PIXEL * 5.4} y={PIXEL * (1.5 + bob)} width={2} height={2} fill="#333" />
+      {/* collar */}
+      <rect x={PIXEL * 4.4} y={PIXEL * (2.9 + bob)} width={PIXEL * 1.2} height={PIXEL * 0.4} fill="#e74c3c" />
+      {/* legs */}
+      {frame === 0 ? (
+        <>
+          <rect x={PIXEL * 1.4} y={PIXEL * (4.4 + bob)} width={PIXEL * 0.8} height={PIXEL * 1.3} fill={color} />
+          <rect x={PIXEL * 3.8} y={PIXEL * (4.4 + bob)} width={PIXEL * 0.8} height={PIXEL * 1.3} fill={color} />
+        </>
+      ) : (
+        <>
+          <rect x={PIXEL * 1.1} y={PIXEL * (4.4 + bob)} width={PIXEL * 0.8} height={PIXEL * 1.1} fill={color} />
+          <rect x={PIXEL * 2.4} y={PIXEL * (4.4 + bob)} width={PIXEL * 0.8} height={PIXEL * 1.3} fill={color} />
+          <rect x={PIXEL * 4.2} y={PIXEL * (4.4 + bob)} width={PIXEL * 0.8} height={PIXEL * 1.2} fill={color} />
+        </>
+      )}
     </svg>
   );
 }
