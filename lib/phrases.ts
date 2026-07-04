@@ -37,9 +37,76 @@ export const CITIZEN_PHRASES = [
   "o cinema ta passando meu clip favorito",
 ];
 
-export function pickPhrase(kind: "tina" | "cat" | "citizen"): string {
-  const pool =
+/* extra pools while the live is ON */
+const TINA_LIVE_PHRASES = [
+  "to AO VIVO, gente!",
+  "vem pra live!",
+  "o chat ta demais hoje",
+];
+
+const CITIZEN_LIVE_PHRASES = [
+  "a tina ta ON!",
+  "alguem viu o chat?",
+  "clipa isso!",
+  "hoje tem tombo, eu sinto",
+  "perdi o comeco?",
+  "silencio, to assistindo",
+  "melhor live do ano",
+];
+
+export function pickPhrase(
+  kind: "tina" | "cat" | "citizen",
+  opts?: { live?: boolean },
+): string {
+  let pool =
     kind === "tina" ? TINA_PHRASES : kind === "cat" ? CAT_PHRASES : CITIZEN_PHRASES;
+  if (opts?.live && kind !== "cat" && Math.random() < 0.55) {
+    pool = kind === "tina" ? TINA_LIVE_PHRASES : CITIZEN_LIVE_PHRASES;
+  }
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+/* ── live-start celebration + telao watching + building visits ── */
+
+const CELEBRATION_SHOUTS = [
+  "COMECOU!",
+  "chegou!!",
+  "sai da frente!",
+  "AO VIVO!",
+  "corre!!",
+  "hoje tem!",
+  "PRACA! AGORA!",
+  "avisa geral!",
+];
+
+export function pickCelebrationShout(): string {
+  return CELEBRATION_SHOUTS[Math.floor(Math.random() * CELEBRATION_SHOUTS.length)];
+}
+
+const WATCH_PHRASES = [
+  "clipa isso!",
+  "olha o telao!",
+  "...",
+  "KKKKK",
+  "essa foi boa",
+  "nao acredito que ela fez isso",
+];
+
+export function pickWatchPhrase(): string {
+  return WATCH_PHRASES[Math.floor(Math.random() * WATCH_PHRASES.length)];
+}
+
+export type TownBuilding = "bar" | "fliperama" | "cine" | "salao";
+
+const VISIT_PHRASES: Record<TownBuilding, string[]> = {
+  bar: ["vou tomar uma", "uma rapidinha no bar", "to com sede"],
+  fliperama: ["hora de bater recorde", "uma fichinha so", "bora jogar"],
+  cine: ["sessao rapidinha", "dizem que o filme e otimo", "pipoca e clips"],
+  salao: ["vou dar um trato no visual", "hora do cabelo novo", "so uma escovinha"],
+};
+
+export function pickVisitPhrase(building: TownBuilding): string {
+  const pool = VISIT_PHRASES[building];
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
@@ -89,6 +156,15 @@ const CITIZEN_CITIZEN: string[][] = [
   ["dizem que o cinema ta otimo", "os clips dessa semana? otimos"],
 ];
 
+/* citizen-citizen while the live is ON */
+const CITIZEN_CITIZEN_LIVE: string[][] = [
+  ["viu o que ela fez??", "CLIPA! CLIPA!"],
+  ["o chat ta um caos", "como sempre kkkk"],
+  ["aposto 3 tombos hoje", "fechado"],
+  ["{other}, ta vendo a live?", "obvio, so vim esticar as pernas"],
+  ["ela ja bebeu quantas?", "perdi a conta na terceira"],
+];
+
 export type DialogueParticipant = {
   name: string;
   kind: WalkerKind;
@@ -99,7 +175,11 @@ function pickTemplate(pool: string[][]): string[] {
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
-export function buildDialogue(a: DialogueParticipant, b: DialogueParticipant): DialogueLine[] {
+export function buildDialogue(
+  a: DialogueParticipant,
+  b: DialogueParticipant,
+  opts?: { live?: boolean },
+): DialogueLine[] {
   let template: string[];
   let first: "a" | "b" = "a";
 
@@ -111,6 +191,8 @@ export function buildDialogue(a: DialogueParticipant, b: DialogueParticipant): D
   } else if (a.kind === "tina" || b.kind === "tina") {
     first = a.kind === "tina" ? "b" : "a"; /* the fan opens */
     template = pickTemplate(TINA_CITIZEN);
+  } else if (opts?.live && Math.random() < 0.5) {
+    template = pickTemplate(CITIZEN_CITIZEN_LIVE);
   } else if (a.record && b.record && Math.random() < 0.3) {
     template = [
       `meu recorde no ${a.record.game} e ${a.record.score}!`,

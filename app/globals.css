@@ -1617,6 +1617,84 @@ input {
   height: auto;
 }
 
+/* pets walk beside their owners */
+.town-walker__sprite {
+  gap: 2px;
+}
+
+.town-walker__pet svg,
+.char-builder__pet svg {
+  width: 20px;
+  height: auto;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.char-builder__pet {
+  display: flex;
+  align-items: flex-end;
+  margin-right: 6px;
+}
+
+.char-builder__pet svg {
+  width: 44px;
+}
+
+/* citizen currently inside a building */
+.town-walker {
+  transition: opacity 0.7s ease;
+}
+
+.town-walker--inside {
+  opacity: 0;
+  pointer-events: none;
+  animation-play-state: paused;
+}
+
+/* their house goes dark while they are out */
+.house--away .house__window {
+  fill: #4a4458;
+  animation: none !important;
+}
+
+/* ── plaza gossip ticker ───────────────────────────────── */
+.town-ticker {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.55rem 1rem;
+  background: rgba(10, 7, 18, 0.8);
+  border-top: 2px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.town-ticker__label {
+  font-size: 8px;
+  color: #ff4f9d;
+  flex-shrink: 0;
+  letter-spacing: 0.05em;
+}
+
+.town-ticker__text {
+  font-size: 8px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  animation: ticker-fade 0.5s ease;
+}
+
+@keyframes ticker-fade {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 /* highlight for the visitor's own character */
 .town-walker--me .town-walker__name {
   color: #ffd95e;

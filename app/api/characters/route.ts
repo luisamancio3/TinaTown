@@ -8,9 +8,11 @@ import {
   EYE_PRESETS,
   SHIRT_PRESETS,
   PANTS_PRESETS,
+  PET_PRESETS,
   VALID_STYLES,
   VALID_HAIRSTYLES,
   VALID_ACCESSORIES,
+  VALID_PETS,
 } from "@/lib/colors";
 
 type CharacterData = {
@@ -106,7 +108,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { clientId, name, style, hairStyle, accessory, skin, hair, eye, shirt, pants } = body;
+    const { clientId, name, style, hairStyle, accessory, skin, hair, eye, shirt, pants, pet, petColor } = body;
 
     /* validate clientId */
     if (
@@ -152,6 +154,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "acessorio invalido" }, { status: 400 });
     }
 
+    /* validate pet */
+    const charPet = pet || "nenhum";
+    if (!VALID_PETS.includes(charPet)) {
+      return NextResponse.json({ error: "pet invalido" }, { status: 400 });
+    }
+    const charPetColor = petColor || PET_PRESETS[0];
+    if (charPet !== "nenhum" && !PET_PRESETS.includes(charPetColor)) {
+      return NextResponse.json({ error: "cor de pet invalida" }, { status: 400 });
+    }
+
     /* validate colors against preset whitelist */
     if (!SKIN_PRESETS.includes(skin)) {
       return NextResponse.json({ error: "cor de pele invalida" }, { status: 400 });
@@ -193,6 +205,8 @@ export async function POST(req: NextRequest) {
       style: charStyle,
       hairStyle: charHairStyle,
       accessory: charAccessory,
+      pet: charPet,
+      petColor: charPetColor,
       skin,
       hair,
       eye: charEye,
