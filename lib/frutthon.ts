@@ -46,13 +46,19 @@ export const SUB_TIERS: GoalTier[] = [
 ];
 
 export const PIX_TIERS: GoalTier[] = [
-  { amount: "100", unit: "REAIS", tone: "teal", rewards: ["IRL parque", "IRL restaurante"] },
-  { amount: "250", unit: "REAIS", tone: "purple", rewards: ["IRL Liberdade", "IRL pinga"] },
+  { amount: "50", unit: "REAIS", tone: "teal", rewards: ["Shot de vodka"] },
+  { amount: "100", unit: "REAIS", tone: "purple", rewards: ["IRL parque", "IRL restaurante"] },
+  { amount: "250", unit: "REAIS", tone: "pink", rewards: ["IRL Liberdade", "IRL pinga"] },
   {
     amount: "550",
     unit: "REAIS",
     tone: "gold",
-    rewards: ["IRL shopping", "IRL com a minha mãe", "IRL Airbnb com piscina"],
+    rewards: [
+      "IRL shopping",
+      "IRL com a minha mãe",
+      "IRL Airbnb com piscina",
+      "IRL Airbnb com piscina ft Lito",
+    ],
   },
 ];
 
