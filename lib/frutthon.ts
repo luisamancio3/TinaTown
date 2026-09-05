@@ -56,7 +56,6 @@ export const PIX_TIERS: GoalTier[] = [
     rewards: [
       "IRL shopping",
       "IRL com a minha mãe",
-      "IRL Airbnb com piscina",
       "IRL Airbnb com piscina ft Lito",
     ],
   },
