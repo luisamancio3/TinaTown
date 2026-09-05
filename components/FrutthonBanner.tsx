@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Press_Start_2P } from "next/font/google";
 import { Bunting, PixelArrow } from "@/components/FrutthonPixels";
+import { FrutthonCountdown } from "@/components/FrutthonCountdown";
 
 const pixelFont = Press_Start_2P({ weight: "400", subsets: ["latin"], display: "swap" });
 
@@ -16,7 +17,7 @@ export function FrutthonBanner() {
           <span className="frutthon-sign__bulb" />
         </span>
         <span className="frutthon-banner__text">
-          <strong>A Frutthon está chegando</strong>
+          <FrutthonCountdown fallback="A Frutthon está chegando" />
           <span>Metas de subs, recompensas e o que a Tina vai fazer com a grana.</span>
         </span>
       </div>

@@ -4,6 +4,26 @@
 
 export const FRUTTHON_DATE = "08/09/2026";
 
+/** local-midnight Date for FRUTTHON_DATE (dd/mm/yyyy) */
+export function frutthonDate(): Date {
+  const [day, month, year] = FRUTTHON_DATE.split("/").map(Number);
+  return new Date(year, month - 1, day);
+}
+
+/** whole days from today (local) until the Frutthon: 0 = today, negative = past */
+export function daysUntilFrutthon(now: Date = new Date()): number {
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  return Math.round((frutthonDate().getTime() - today.getTime()) / 86_400_000);
+}
+
+/** headline for the homepage banner, driven only by the date */
+export function frutthonHeadline(days: number): string {
+  if (days > 1) return "Faltam " + days + " dias pra Frutthon";
+  if (days === 1) return "A Frutthon é amanhã";
+  if (days === 0) return "A Frutthon é hoje!";
+  return "A Frutthon já rolou";
+}
+
 /** accent color per tier, escalating from teal to gold */
 export type TierTone = "teal" | "purple" | "pink" | "gold";
 
