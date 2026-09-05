@@ -266,6 +266,7 @@ input {
   width: min(1100px, 92vw);
   margin: 1.2rem auto 0;
   display: flex;
+  flex-wrap: wrap;
   gap: 0.7rem;
 }
 
@@ -2190,4 +2191,333 @@ button.town-walker {
   height: 8px;
   background: #3a2334;
   border-radius: 4px 4px 0 0;
+}
+
+/* ── Frutthon (subathon) page + homepage banner ──────────── */
+.frutthon-bunting {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 40px;
+  display: block;
+  pointer-events: none;
+}
+
+.frutthon-hero {
+  position: relative;
+  overflow: hidden;
+}
+
+.frutthon-hero__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-top: 22px;
+  flex-wrap: wrap;
+}
+
+.frutthon-date {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: rgba(14, 11, 23, 0.65);
+  border: 1px solid var(--panel-border);
+}
+
+.frutthon-date__label {
+  font-size: 8px;
+  color: var(--muted);
+}
+
+.frutthon-date__value {
+  font-size: 12px;
+  color: #ffd95e;
+}
+
+.frutthon-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.2rem;
+}
+
+.frutthon-grid--tight {
+  gap: 0.8rem;
+}
+
+.frutthon-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.frutthon-panel .panel__head {
+  margin-bottom: 0;
+  flex-wrap: wrap;
+}
+
+/* building-sign style headings (Fliperama / Bar da Tina / Cine Tina);
+   .panel__head .frutthon-sign outranks the generic .panel__head h2 size */
+.frutthon-sign,
+.panel__head .frutthon-sign {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  border-radius: 4px;
+  padding: 10px 16px;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.frutthon-sign--arcade {
+  background: #14101f;
+  border: 2px solid #3d2b80;
+  color: #ffd95e;
+}
+
+.frutthon-sign--bar {
+  background: #fff3e0;
+  border: 2px solid #8a3a20;
+  color: #712b13;
+}
+
+.frutthon-sign--cine {
+  background: #ffd7e5;
+  border: 2px solid #8a2b50;
+  color: #8a2b50;
+}
+
+.frutthon-sign__bulb {
+  width: 8px;
+  height: 8px;
+  background: #ffd95e;
+  box-shadow: 0 0 8px #ffd95e;
+  animation: frutthon-blink 1.6s steps(1) infinite;
+}
+
+.frutthon-sign__bulb:last-child {
+  animation-delay: 0.8s;
+}
+
+@keyframes frutthon-blink {
+  0%, 60% { opacity: 1; }
+  60.01%, 100% { opacity: 0.35; }
+}
+
+/* goal tiers */
+.frutthon-tier {
+  display: grid;
+  grid-template-columns: 132px minmax(0, 1fr);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  overflow: hidden;
+}
+
+.frutthon-tier--teal .frutthon-tier__num { background: rgba(66, 217, 207, 0.1); }
+.frutthon-tier--purple .frutthon-tier__num { background: rgba(141, 93, 255, 0.12); }
+.frutthon-tier--pink .frutthon-tier__num { background: rgba(255, 79, 157, 0.12); }
+.frutthon-tier--gold .frutthon-tier__num { background: rgba(255, 217, 94, 0.12); }
+
+.frutthon-tier--gold {
+  border-color: rgba(255, 217, 94, 0.35);
+  box-shadow: 0 0 0 1px rgba(255, 217, 94, 0.15) inset;
+}
+
+.frutthon-tier__num {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 18px 10px;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.frutthon-tier__amount {
+  font-size: 26px;
+}
+
+.frutthon-tier__unit {
+  font-size: 8px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.frutthon-tier__list {
+  list-style: none;
+  margin: 0;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+}
+
+.frutthon-tier__list--flush {
+  padding: 0;
+}
+
+.frutthon-reward {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.frutthon-reward--top {
+  align-items: flex-start;
+}
+
+.frutthon-reward--top .frutthon-glyph {
+  margin-top: 3px;
+}
+
+.frutthon-glyph {
+  flex: none;
+}
+
+.frutthon-reward__note {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+/* past subathon recap cards */
+.frutthon-recap {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  overflow: hidden;
+}
+
+.frutthon-recap__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.frutthon-recap--gold .frutthon-recap__icon { background: rgba(255, 217, 94, 0.1); }
+.frutthon-recap--pink .frutthon-recap__icon { background: rgba(255, 79, 157, 0.1); }
+
+.frutthon-recap__body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+}
+
+.frutthon-recap__title {
+  font-size: 8px;
+}
+
+.frutthon-recap__sub {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+/* homepage banner */
+.frutthon-banner {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 14px 20px 14px 22px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 79, 157, 0.45);
+  background: linear-gradient(130deg, rgba(255, 79, 157, 0.28), rgba(141, 93, 255, 0.28));
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.25), 0 0 24px rgba(255, 79, 157, 0.18);
+  color: var(--text);
+  text-decoration: none;
+  transition: transform 0.18s ease, border-color 0.18s ease;
+}
+
+.frutthon-banner:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 79, 157, 0.8);
+}
+
+.frutthon-banner__row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.frutthon-banner__sign {
+  font-size: 14px;
+}
+
+.frutthon-banner__text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.frutthon-banner__text strong {
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.frutthon-banner__text span {
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.frutthon-banner__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 18px;
+  padding: 12px 18px;
+  border-radius: 12px;
+  background: var(--pink);
+  color: #1a1420;
+  font-weight: 800;
+  font-size: 0.88rem;
+  box-shadow: 0 4px 0 #8a2b50;
+  white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+  .frutthon-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .frutthon-hero h1 {
+    font-size: 1.6rem;
+  }
+
+  .frutthon-tier {
+    grid-template-columns: 92px minmax(0, 1fr);
+  }
+
+  .frutthon-banner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .frutthon-banner__row {
+    flex-wrap: wrap;
+  }
+
+  .frutthon-banner__cta {
+    justify-content: center;
+  }
 }
